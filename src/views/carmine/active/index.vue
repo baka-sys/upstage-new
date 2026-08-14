@@ -6,11 +6,13 @@
       <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="refreshData">
         <template #left>
           <ElSpace wrap>
-            <ElButton v-ripple>默认设置</ElButton>
+            <ElButton :loading="defaultSettingLoading" @click="openDefaultSetting" v-ripple>
+              默认设置
+            </ElButton>
             <ElButton v-ripple>同步配置</ElButton>
             <ElButton v-ripple>全部开启</ElButton>
             <ElButton v-ripple>全部暂停</ElButton>
-            <ElButton v-ripple>全部配置</ElButton>
+            <ElButton @click="allSettingVisible = true" v-ripple>全部配置</ElButton>
           </ElSpace>
         </template>
       </ArtTableHeader>
@@ -25,14 +27,23 @@
         @pagination:current-change="handleCurrentChange"
       />
     </ElCard>
+
+    <DefaultSettingDialog
+      v-model="defaultSettingVisible"
+      :setting-data="defaultSettingData"
+      @success="handleDefaultSettingSuccess"
+    />
+    <AllSettingDialog v-model="allSettingVisible" @success="handleAllSettingSuccess" />
   </div>
 </template>
 
 <script setup lang="ts">
   import { ElButton, ElTag } from 'element-plus'
-  import { activePage } from '@/api/carmine'
+  import { activePage, getEntryRatioSetting } from '@/api/carmine'
   import { useTable } from '@/hooks/core/useTable'
   import ActiveSearch from './modules/active-search.vue'
+  import DefaultSettingDialog from './modules/default-setting-dialog.vue'
+  import AllSettingDialog from './modules/all-setting-dialog.vue'
 
   defineOptions({ name: 'CarmineActive' })
 
@@ -44,6 +55,10 @@
     keywords: undefined
   })
   const selectedRows = ref<ActiveListItem[]>([])
+  const defaultSettingVisible = ref(false)
+  const defaultSettingLoading = ref(false)
+  const defaultSettingData = ref<Api.CarmineMange.EntryRatioSetting>()
+  const allSettingVisible = ref(false)
 
   const hasRatioSetting = (row: ActiveListItem) => Boolean(row.entryRatio || row.isSearch)
 
@@ -160,5 +175,26 @@
 
   const handleSelectionChange = (selection: ActiveListItem[]) => {
     selectedRows.value = selection
+  }
+
+  const openDefaultSetting = async () => {
+    defaultSettingLoading.value = true
+    try {
+      const setting = await getEntryRatioSetting()
+      defaultSettingData.value = setting
+      defaultSettingVisible.value = true
+    } catch {
+      // 接口错误由统一请求封装提示，获取失败时不打开弹窗。
+    } finally {
+      defaultSettingLoading.value = false
+    }
+  }
+
+  const handleDefaultSettingSuccess = async () => {
+    await refreshData()
+  }
+
+  const handleAllSettingSuccess = async () => {
+    await refreshData()
   }
 </script>

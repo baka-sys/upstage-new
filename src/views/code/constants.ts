@@ -15,3 +15,14 @@ export const PLATFORM_TYPE_OPTIONS = Object.entries(PLATFORM_TYPE_MAP).map(([val
   label,
   value: Number(value)
 }))
+
+/** 批量录入接口的平台选项。TODO: 等待后端确认 platformType 的真实枚举值。 */
+export const BATCH_PLATFORM_TYPE_OPTIONS = [
+  { label: '全网', value: 0 },
+  { label: '浏览器', value: 1 },
+  { label: '微信', value: 2 },
+  { label: 'QQ', value: 3 },
+  { label: '抖音', value: 4 },
+  { label: '微博', value: 5 },
+  { label: '支付宝', value: 6 }
+]

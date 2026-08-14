@@ -252,6 +252,12 @@
     "systemDomain": {
       "title": "系统域名"
     },
+    "planConfig": {
+      "title": "方案设置"
+    },
+    "systemConfig": {
+      "title": "系统配置"
+    },
     "carmine": {
       "title": "卡密管理",
       "list": "卡密列表",

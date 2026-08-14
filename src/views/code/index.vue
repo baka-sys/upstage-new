@@ -16,12 +16,21 @@
             <ElButton type="primary" :icon="Plus" v-ripple @click="handleBatchImport">
               批量录入
             </ElButton>
-            <ElButton :icon="Refresh" v-ripple @click="handleBatchReset">批量重置</ElButton>
+            <ElButton
+              :icon="Refresh"
+              :disabled="selectedIds.length === 0 || resetting"
+              :loading="resetting"
+              v-ripple
+              @click="handleBatchReset"
+            >
+              批量重置
+            </ElButton>
             <ElButton
               type="danger"
               plain
               :icon="Delete"
-              :disabled="selectedRows.length === 0"
+              :disabled="selectedIds.length === 0 || deleting"
+              :loading="deleting"
               v-ripple
               @click="handleBatchDelete"
             >
@@ -35,6 +44,7 @@
       </ArtTableHeader>
 
       <ArtTable
+        ref="tableRef"
         :loading="loading"
         :data="data"
         :columns="columns"
@@ -44,16 +54,23 @@
         @pagination:size-change="handleSizeChange"
         @pagination:current-change="handleCurrentChange"
       />
+
+      <CodeBatchAddDialog
+        v-model:visible="batchAddDialogVisible"
+        :initial-type="batchAddInitialType"
+        @success="handleBatchAddSuccess"
+      />
     </ElCard>
   </div>
 </template>
 
 <script setup lang="ts">
   import { Delete, MoreFilled, Plus, Refresh } from '@element-plus/icons-vue'
-  import { ElButton, ElTag } from 'element-plus'
-  import { getCodePage } from '@/api/code'
+  import { ElButton, ElMessageBox, ElTag } from 'element-plus'
+  import { deleteCodeBatch, getCodePage, resetCodeBatch, updateCodeStatus } from '@/api/code'
   import { useTable } from '@/hooks/core/useTable'
   import { CODE_TYPE_TABS, PLATFORM_TYPE_MAP } from './constants'
+  import CodeBatchAddDialog from './modules/code-batch-add-dialog.vue'
   import CodeSearch from './modules/code-search.vue'
 
   defineOptions({ name: 'CodeDomain' })
@@ -64,6 +81,15 @@
   const activeType = ref<Api.CodeManage.CodeType>(0)
   const searchForm = ref<SearchForm>({})
   const selectedRows = ref<CodeListItem[]>([])
+  const selectedIds = computed(() =>
+    selectedRows.value.map((row) => row.id).filter((id): id is number => id != null)
+  )
+  const tableRef = ref<{ elTableRef?: { clearSelection: () => void } }>()
+  const resetting = ref(false)
+  const deleting = ref(false)
+  const statusUpdatingId = ref<number>()
+  const batchAddDialogVisible = ref(false)
+  const batchAddInitialType = ref<Api.CodeManage.BatchAddCodeType>(0)
 
   const formatPlatformType = (platformType?: number) => {
     if (platformType == null) return '--'
@@ -78,7 +104,10 @@
     getData,
     replaceSearchParams,
     handleSizeChange,
-    handleCurrentChange
+    handleCurrentChange,
+    refreshCreate,
+    refreshRemove,
+    refreshUpdate
   } = useTable({
     core: {
       apiFn: getCodePage,
@@ -131,8 +160,18 @@
             h('div', { class: 'code-operation' }, [
               h(
                 ElButton,
-                { link: true, type: 'primary', onClick: () => handleClose(row) },
-                () => '关闭'
+                {
+                  link: true,
+                  type: 'primary',
+                  loading: statusUpdatingId.value === row.id,
+                  disabled: ![0, 1].includes(row.status ?? -1),
+                  onClick: () => handleToggleStatus(row)
+                },
+                () => {
+                  if (row.status === 0) return '关闭'
+                  if (row.status === 1) return '开启'
+                  return '切换状态'
+                }
               ),
               h(ElButton, {
                 link: true,
@@ -176,20 +215,124 @@
   }
 
   const handleBatchImport = () => {
-    // TODO: 接入批量录入功能及后端接口。
+    if (activeType.value === 2) {
+      // TODO: 后端确认备用活码/短域名是否支持 /code/addBatch。
+      ElMessage.warning('当前类型暂不支持批量录入')
+      return
+    }
+
+    batchAddInitialType.value = activeType.value
+    batchAddDialogVisible.value = true
   }
 
-  const handleBatchReset = () => {
-    // TODO: 接入批量重置功能及后端接口。
+  const handleBatchAddSuccess = async () => {
+    await refreshCreate()
   }
 
-  const handleBatchDelete = () => {
-    // TODO: 接入批量删除接口。
+  const handleBatchReset = async () => {
+    if (selectedIds.value.length === 0 || resetting.value) return
+
+    try {
+      await ElMessageBox.confirm(
+        `确定要重置选中的 ${selectedIds.value.length} 条活码域名吗？`,
+        '确认重置',
+        {
+          confirmButtonText: '确认',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      )
+    } catch {
+      // 用户取消确认时保留当前勾选状态，不调用接口。
+      return
+    }
+
+    resetting.value = true
+    try {
+      await resetCodeBatch({
+        // 后端要求多个主键使用英文逗号分隔。
+        ids: selectedIds.value.join(','),
+        // 公共、专属、备用三个 Tab 均支持，直接使用当前 Tab 类型。
+        type: activeType.value
+      })
+      ElMessage.success('重置成功')
+      tableRef.value?.elTableRef?.clearSelection()
+      selectedRows.value = []
+      // 暂无固定返回第一页要求：保留当前页，若该页为空则自动退到上一页。
+      await refreshRemove()
+    } catch {
+      // 请求错误由统一 HTTP 拦截器提示；失败时保留表格勾选状态。
+    } finally {
+      resetting.value = false
+    }
   }
 
-  const handleClose = (row: CodeListItem) => {
-    void row
-    // TODO: 接入关闭域名接口。
+  const handleBatchDelete = async () => {
+    if (selectedIds.value.length === 0 || deleting.value) return
+
+    try {
+      await ElMessageBox.confirm(
+        `确定要删除选中的 ${selectedIds.value.length} 条活码域名吗？删除后不可恢复，请谨慎操作。`,
+        '确认删除',
+        {
+          confirmButtonText: '确认删除',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      )
+    } catch {
+      // 用户取消确认时保留当前勾选状态，不调用接口。
+      return
+    }
+
+    deleting.value = true
+    try {
+      await deleteCodeBatch({
+        // 后端要求多个主键使用英文逗号分隔，公共、专属、备用三个 Tab 均支持。
+        ids: selectedIds.value.join(',')
+      })
+      ElMessage.success('删除成功')
+      tableRef.value?.elTableRef?.clearSelection()
+      selectedRows.value = []
+      // 后端确认删除后保持当前页；若该页已为空则自动退到上一页。
+      await refreshRemove()
+    } catch {
+      // 请求错误由统一 HTTP 拦截器提示；失败时保留表格勾选状态。
+    } finally {
+      deleting.value = false
+    }
+  }
+
+  const handleToggleStatus = async (row: CodeListItem) => {
+    if (row.id == null) {
+      ElMessage.warning('数据 id 为空，无法操作')
+      return
+    }
+    if (![0, 1].includes(row.status ?? -1) || statusUpdatingId.value != null) return
+
+    const actionText = row.status === 0 ? '关闭' : '开启'
+    try {
+      await ElMessageBox.confirm(`确定要${actionText}该活码域名吗？`, `确认${actionText}`, {
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+    } catch {
+      // 用户取消确认时不调用接口，也不修改本地状态。
+      return
+    }
+
+    statusUpdatingId.value = row.id
+    try {
+      await updateCodeStatus({ id: row.id })
+      ElMessage.success(`${actionText}成功`)
+      // 保留当前 Tab、搜索条件、页码和每页条数，并以后端返回状态为准。
+      await refreshUpdate()
+    } catch {
+      // 请求错误由统一 HTTP 拦截器提示，不手动修改当前行状态。
+    } finally {
+      statusUpdatingId.value = undefined
+    }
   }
 
   const handleMore = (row: CodeListItem) => {

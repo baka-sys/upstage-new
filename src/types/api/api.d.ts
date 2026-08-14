@@ -213,6 +213,57 @@ declare namespace Api {
       dosage?: number
       entryRatio?: number | string
     }
+
+    /** 劫持默认配置中的卡密项 */
+    interface EntryRatioCarmineItem {
+      carmine: string
+      /** 主表 cs_setting id */
+      mainId?: number
+      /** 劫持卡密 id */
+      userId?: number
+      /** 已劫持数量 */
+      number: number
+      updateTime?: string
+    }
+
+    /** 劫持默认配置 */
+    interface EntryRatioSetting {
+      id?: number | string
+      mainNumberTwo?: number
+      subNumberTwo?: number
+      hijackMainNumberTwo?: number
+      hijackSubNumberTwo?: number
+      excludeCard?: string
+      delayTime?: number
+      hackTotalNumber?: number
+      totalNumber?: number
+      updateTime?: string
+      carmines?: EntryRatioCarmineItem[]
+    }
+
+    /** 修改劫持默认配置请求参数 */
+    interface UpdateEntryRatioSettingParams {
+      id: number | string
+      mainNumberTwo: number
+      subNumberTwo: number
+      hijackMainNumberTwo: number
+      hijackSubNumberTwo: number
+      excludeCard: string
+      delayTime: number
+      hackTotalNumber: number
+      totalNumber: number
+      carmines: EntryRatioCarmineItem[]
+    }
+
+    /** 全部修改比例配置请求参数 */
+    interface BatchUpdateAllEntryRatioParams {
+      /** 1：普通卡；2：劫持卡（待后端最终确认） */
+      type: 1 | 2
+      mainRadioNumberTwo: number
+      subRadioNumberTwo: number
+      /** 0：开；1：关（待后端最终确认） */
+      switchCodeTwo: 0 | 1
+    }
   }
 
   /** 积分记录 */
@@ -247,6 +298,7 @@ declare namespace Api {
   /** 活码域名 */
   namespace CodeManage {
     type CodeType = 0 | 1 | 2
+    type BatchAddCodeType = 0 | 1
 
     interface CodePageParams {
       type: CodeType
@@ -275,6 +327,29 @@ declare namespace Api {
     }
 
     type CodePageList = Api.Common.PaginatedResponse<CodePageListItem>
+
+    interface AddCodeBatchParams {
+      domainNames: string
+      type: BatchAddCodeType
+      platformType?: number
+      direct?: 0 | 1
+    }
+
+    interface ResetCodeBatchParams {
+      /** 主键以英文逗号分隔 */
+      ids: string
+      /** 使用当前 Tab 类型；0、1、2 均支持批量重置 */
+      type: CodeType
+    }
+
+    interface DeleteCodeBatchParams {
+      /** 主键以英文逗号分隔；公共、专属、备用活码均支持批量删除 */
+      ids: string
+    }
+
+    interface UpdateCodeStatusParams {
+      id: number
+    }
   }
 
   /** 系统配置域名 */
@@ -304,5 +379,52 @@ declare namespace Api {
     }
 
     type SystemDomainPageList = Api.Common.PaginatedResponse<SystemDomainPageListItem>
+  }
+
+  /** 问答方案设置 */
+  namespace PlanConfigManage {
+    type PlanStatus = 0 | 1
+
+    interface PlanConfigPageParams {
+      page: number
+      limit: number
+    }
+
+    interface AddPlanConfigParams {
+      title: string
+      img: string
+      content: string
+      /** 0：开启；1：关闭。新增方案默认传 0。 */
+      status: PlanStatus
+    }
+
+    interface UpdatePlanConfigParams extends AddPlanConfigParams {
+      id: number
+    }
+
+    interface DeletePlanConfigParams {
+      id: number
+    }
+
+    interface UpdatePlanConfigStatusParams {
+      id: number
+      /** 0：开启；1：关闭。 */
+      status: PlanStatus
+    }
+
+    interface PlanConfigPageListItem {
+      id: number
+      title: string
+      /** 后续详情或编辑页面使用。 */
+      img?: string
+      /** 后续详情或编辑页面使用。 */
+      content?: string
+      /** 0：开启；1：关闭。 */
+      status: PlanStatus | number
+      createTime?: string
+      updateTime?: string
+    }
+
+    type PlanConfigPageList = Api.Common.PaginatedResponse<PlanConfigPageListItem>
   }
 }

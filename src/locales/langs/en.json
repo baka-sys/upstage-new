@@ -245,6 +245,12 @@
     "systemDomain": {
       "title": "System Domains"
     },
+    "planConfig": {
+      "title": "Plan Settings"
+    },
+    "systemConfig": {
+      "title": "System Configuration"
+    },
     "system": {
       "title": "System Settings",
       "user": "User Manage",

@@ -39,3 +39,26 @@ export async function activePage(
     size: params.limit
   }
 }
+
+/** 获取劫持默认配置 */
+export function getEntryRatioSetting() {
+  return request.get<Api.CarmineMange.EntryRatioSetting>({
+    url: '/entryRatioSetting/get'
+  })
+}
+
+/** 修改劫持默认配置 */
+export function updateEntryRatioSetting(params: Api.CarmineMange.UpdateEntryRatioSettingParams) {
+  return request.post<void>({
+    url: '/entryRatioSetting/update',
+    data: params
+  })
+}
+
+/** 全部修改比例配置 */
+export function batchUpdateAllEntryRatio(params: Api.CarmineMange.BatchUpdateAllEntryRatioParams) {
+  return request.post<void>({
+    url: '/entryRatio/batchUpdateAll',
+    data: params
+  })
+}
