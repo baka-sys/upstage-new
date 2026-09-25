@@ -64,3 +64,15 @@ export function updatePlanConfigStatus(params: Api.PlanConfigManage.UpdatePlanCo
     data: {}
   })
 }
+
+/** 设置默认方案；方案 id 通过 query 提交 */
+export function setPlanConfigDefault(params: Api.PlanConfigManage.SetPlanConfigDefaultParams) {
+  return request.post<void>({
+    url: '/planConfig/defaultStatus',
+    params,
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    data: {}
+  })
+}

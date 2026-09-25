@@ -64,7 +64,7 @@ declare namespace Api {
   namespace Auth {
     /** 登录参数 */
     interface LoginParams {
-      username: string
+      account: string
       password: string
     }
 
@@ -83,6 +83,94 @@ declare namespace Api {
       username: string
       email: string
       avatar?: string
+    }
+  }
+
+  /** 仪表盘统计 */
+  namespace Dashboard {
+    /** 卡密与使用情况统计（GET /user/count） */
+    interface UserCount {
+      total: number | null
+      useTotal: number | null
+      stopTotal: number | null
+      notActiveTotal: number | null
+      rechargedTotal: number | null
+      rechargedDays: number | null
+      userLoginTotal: number | null
+      customerOnlineTotal: number | null
+      points: number | null
+    }
+
+    /** 劫持统计（GET /user/countRadio） */
+    interface HackCount {
+      localTotal: number | null
+      hackTotal: number | null
+      ahackTotal: number | null
+      bhackTotal: number | null
+      chackTotal: number | null
+      todayHackTotal: number | null
+    }
+  }
+
+  /** 企业账号管理 */
+  namespace AccountManage {
+    /** 0：启用；1：禁用 */
+    type AccountStatus = 0 | 1
+
+    interface AccountPageParams {
+      keyword?: string
+      page: number
+      limit: number
+    }
+
+    interface AccountListItem {
+      id: number | string
+      accountName: string
+      img?: string
+      account: string
+      phoneNumber?: number | string
+      accountKey?: string
+      status: AccountStatus
+      points?: number
+      creditPoints?: number
+      hackRate?: number
+      createTime?: string
+      updateTime?: string
+      loginTime?: string
+    }
+
+    type AccountPageList = Api.Common.PaginatedResponse<AccountListItem>
+
+    interface AddAccountParams {
+      accountName: string
+      img?: string
+      account: string
+      password: string
+      confirmPassword: string
+      phoneNumber?: number
+      status: AccountStatus
+    }
+
+    interface UpdateAccountInfoParams {
+      id: number | string
+      accountName: string
+      img?: string
+    }
+
+    interface UpdateAccountPasswordParams {
+      id: number | string
+      newPassword: string
+      confirmPassword: string
+    }
+
+    interface UpdateAccountStatusParams {
+      id: number | string
+      status: AccountStatus
+    }
+
+    interface RechargeAccountParams {
+      accountId: number | string
+      coin: number
     }
   }
 
@@ -140,6 +228,15 @@ declare namespace Api {
    * 卡密管理
    */
   namespace CarmineMange {
+    /** 账号状态：0 启用，1 禁用 */
+    type CarmineStatus = 0 | 1
+
+    /** 卡密状态：0 未激活，1 已激活，2 已续费，3 已过期 */
+    type CarmineActiveState = 0 | 1 | 2 | 3
+
+    /** 卡密类型：0 会员卡，1 测试卡 */
+    type CarmineType = 0 | 1
+
     /** 卡密列表 */
     type CarmineList = Api.Common.PaginatedResponse<CarmineListItem>
 
@@ -159,11 +256,58 @@ declare namespace Api {
       updateTime: string
     }
 
-    /** 用户搜索参数 */
-    type UserSearchParams = Partial<
-      Pick<CarmineListItem, 'userName' | 'status' | 'activeState' | 'testCard'> &
-        Api.Common.CommonSearchParams
-    >
+    /** 总后台卡密列表 */
+    type CardList = Api.Common.PaginatedResponse<CardListItem>
+
+    /** 总后台卡密列表实际返回项 */
+    interface CardListItem {
+      carmine?: string
+      status?: CarmineStatus
+      activeState?: CarmineActiveState
+      expirationDate?: string
+      loginTime?: string
+    }
+
+    /** 卡密列表请求参数 */
+    interface CarminePageParams {
+      userName?: string
+      status?: CarmineStatus
+      activeState?: CarmineActiveState
+      testCard?: CarmineType
+      pastDue?: 0 | 1
+      page: number
+      limit: number
+    }
+
+    /** 卡密列表搜索表单 */
+    type CarmineSearchParams = Partial<Omit<CarminePageParams, 'page' | 'limit'>>
+
+    /** 批量生成卡密参数 */
+    interface GenerateCarmineParams {
+      lines: number
+      password?: string
+      shellType?: number
+      days: number
+      testCard: CarmineType
+      qrcodeSwitch?: 0 | 1 | 2
+      prefixString?: string
+      maxNumber?: number
+      /** 1 普通卡，2 劫持卡 */
+      isSearch?: 1 | 2
+      accountId?: number
+    }
+
+    /** 批量续费卡密参数 */
+    interface RenewCarmineParams {
+      carmines: string
+      days: number
+      maxNumber: number
+    }
+
+    /** 批量禁用卡密参数 */
+    interface FreezeCarmineParams {
+      carmines: string
+    }
 
     /** 卡密截图列表请求参数 */
     interface ActivePageParams {
@@ -194,6 +338,7 @@ declare namespace Api {
       status?: number
       ipAddress?: string
       accountId?: number | string
+      accountName?: string
       equipmentCode?: string
       ipDistrict?: string
       browserName?: string
@@ -213,6 +358,61 @@ declare namespace Api {
       dosage?: number
       entryRatio?: number | string
     }
+
+    /** 劫持比例配置（EntryRatioDTO / EntryRatioVO） */
+    interface EntryRatioItem {
+      id?: number
+      mainUserId?: number
+      mainCarmine?: string
+      subUserId?: number
+      subCarmine?: string
+      mainRadioNumber?: number
+      subRadioNumber?: number
+      mainNumber?: number
+      subNumber?: number
+      switchCode?: 0 | 1
+      mainNumberTotal?: number
+      systemTotalNumber?: number
+      mainNumberTotalTwo?: number
+      systemTotalNumberTwo?: number
+      subUserIdTwo?: number
+      subCarmineTwo?: string
+      mainRadioNumberTwo?: number
+      subRadioNumberTwo?: number
+      mainNumberTwo?: number
+      subNumberTwo?: number
+      switchCodeTwo?: 0 | 1
+      hackNumber?: number
+      bcHackNumber?: number
+      dosage?: number
+      startTime?: string
+      createTime?: string
+      updateTime?: string
+    }
+
+    /** 新增或修改劫持比例参数 */
+    interface SaveEntryRatioParams extends EntryRatioItem {
+      mainUserId: number
+    }
+
+    /** 劫持管理分页参数 */
+    interface EntryRatioPageParams {
+      accountId?: number
+      page: number
+      limit: number
+    }
+
+    /** 劫持管理分页结果 */
+    type EntryRatioPageList = Api.Common.PaginatedResponse<EntryRatioItem>
+
+    /** 企业账户下拉项（GET /account/list） */
+    interface AccountListItem {
+      id: number
+      accountName: string
+      account: string
+    }
+
+    type HijackAccountItem = AccountListItem
 
     /** 劫持默认配置中的卡密项 */
     interface EntryRatioCarmineItem {
@@ -257,19 +457,21 @@ declare namespace Api {
 
     /** 全部修改比例配置请求参数 */
     interface BatchUpdateAllEntryRatioParams {
-      /** 1：普通卡；2：劫持卡（待后端最终确认） */
+      /** 1：普通卡；2：劫持卡 */
       type: 1 | 2
       mainRadioNumberTwo: number
       subRadioNumberTwo: number
-      /** 0：开；1：关（待后端最终确认） */
+      /** 0：开；1：关 */
       switchCodeTwo: 0 | 1
     }
   }
 
   /** 积分记录 */
   namespace RecordManage {
+    type RecordType = 1 | 2 | 3
+
     interface RecordPageParams {
-      type?: 1 | 2
+      type?: RecordType
       accountId?: number | string
       startTime?: string
       endTime?: string
@@ -280,10 +482,12 @@ declare namespace Api {
     interface RecordListItem {
       id: number
       accountId: number | string
-      type: number
+      type: RecordType
       points: number
       beforeOperation: number
       afterOperation: number
+      remark?: string
+      ipAddress?: string
       createTime: string
     }
 
@@ -291,7 +495,8 @@ declare namespace Api {
 
     interface AccountListItem {
       id: number | string
-      [key: string]: unknown
+      accountName: string
+      account: string
     }
   }
 
@@ -384,6 +589,10 @@ declare namespace Api {
   /** 问答方案设置 */
   namespace PlanConfigManage {
     type PlanStatus = 0 | 1
+    /** 当前后端仅定义 0：验证码。 */
+    type PlanType = 0
+    /** 0：默认；1：非默认。 */
+    type PlanDefaultStatus = 0 | 1
 
     interface PlanConfigPageParams {
       page: number
@@ -396,6 +605,8 @@ declare namespace Api {
       content: string
       /** 0：开启；1：关闭。新增方案默认传 0。 */
       status: PlanStatus
+      type: PlanType
+      defaultStatus: PlanDefaultStatus
     }
 
     interface UpdatePlanConfigParams extends AddPlanConfigParams {
@@ -412,6 +623,10 @@ declare namespace Api {
       status: PlanStatus
     }
 
+    interface SetPlanConfigDefaultParams {
+      id: number
+    }
+
     interface PlanConfigPageListItem {
       id: number
       title: string
@@ -421,10 +636,51 @@ declare namespace Api {
       content?: string
       /** 0：开启；1：关闭。 */
       status: PlanStatus | number
+      /** 当前后端仅定义 0：验证码。 */
+      type: PlanType | number
+      /** 0：默认；1：非默认。 */
+      defaultStatus: PlanDefaultStatus | number
       createTime?: string
       updateTime?: string
     }
 
     type PlanConfigPageList = Api.Common.PaginatedResponse<PlanConfigPageListItem>
+  }
+
+  /** 链接管理 */
+  namespace AccountUrlMainManage {
+    type UrlType = 1 | 2 | 3
+    type RelationType = 1 | 2
+
+    interface AccountUrlMainPageParams {
+      urlType?: UrlType
+      relationType?: RelationType
+      page: number
+      limit: number
+    }
+
+    interface AccountUrlMainListItem {
+      id: number
+      urlType: UrlType | number
+      mainVisitUrl: string
+      relationType: RelationType | number
+      accountUrl?: unknown
+      visitUrl?: string
+      createTime?: string
+      updateTime?: string
+    }
+
+    type AccountUrlMainPageList = Api.Common.PaginatedResponse<AccountUrlMainListItem>
+
+    interface UpdateAccountUrlMainParams {
+      id: number
+      urlType: UrlType
+      mainVisitUrl: string
+      relationType: RelationType
+    }
+
+    interface CopyAccountUrlMainParams {
+      urlType?: UrlType
+    }
   }
 }

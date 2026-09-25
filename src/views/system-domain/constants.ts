@@ -1,8 +1,14 @@
 export const DOMAIN_TYPE_MAP: Record<number, string> = {
-  1: '直连',
-  2: '图片',
-  3: '上传'
+  1: '直连域名',
+  2: '图片域名',
+  3: '上传域名'
 }
+
+export const DOMAIN_TYPE_TAG_MAP = {
+  1: 'primary',
+  2: 'success',
+  3: 'warning'
+} as const
 
 export const DOMAIN_TYPE_OPTIONS = Object.entries(DOMAIN_TYPE_MAP).map(([value, label]) => ({
   label,

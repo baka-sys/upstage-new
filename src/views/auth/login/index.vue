@@ -30,11 +30,11 @@
                 </ElOption>
               </ElSelect>
             </ElFormItem> -->
-            <ElFormItem prop="username">
+            <ElFormItem prop="account">
               <ElInput
                 class="custom-height"
                 :placeholder="$t('login.placeholder.username')"
-                v-model.trim="formData.username"
+                v-model.trim="formData.account"
               />
             </ElFormItem>
             <ElFormItem prop="password">
@@ -150,13 +150,13 @@
   const formRef = ref<FormInstance>()
 
   const formData = reactive({
-    username: '',
+    account: '',
     password: '',
     rememberPassword: true
   })
 
   const rules = computed<FormRules>(() => ({
-    username: [{ required: true, message: t('login.placeholder.username'), trigger: 'blur' }],
+    account: [{ required: true, message: t('login.placeholder.username'), trigger: 'blur' }],
     password: [{ required: true, message: t('login.placeholder.password'), trigger: 'blur' }]
   }))
 
@@ -180,11 +180,11 @@
       loading.value = true
 
       // 登录请求
-      const { username, password } = formData
+      const { account, password } = formData
 
       const { token, refreshToken } = await fetchLogin({
-        username: username,
-        password: password
+        account,
+        password
       })
 
       // 验证token

@@ -8,22 +8,10 @@ import request from '@/utils/http'
 export function fetchLogin(params: Api.Auth.LoginParams) {
   return request.post<Api.Auth.LoginResponse>({
     url: '/admin/login',
-    params: params
+    params,
+    // 后端使用 @RequestParam；显式保留空请求体，避免请求封装把 params 转成 JSON Body。
+    data: {}
     // showSuccessMessage: true // 显示成功消息
     // showErrorMessage: false // 不显示错误消息
-  })
-}
-
-/**
- * 获取用户信息
- * @returns 用户信息
- */
-export function fetchGetUserInfo() {
-  return request.get<Api.Auth.UserInfo>({
-    url: '/api/user/info'
-    // 自定义请求头
-    // headers: {
-    //   'X-Custom-Header': 'your-custom-value'
-    // }
   })
 }

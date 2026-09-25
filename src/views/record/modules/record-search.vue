@@ -64,7 +64,8 @@
         placeholder: '请选择类型',
         options: [
           { label: '充值', value: 1 },
-          { label: '消费', value: 2 }
+          { label: '消费', value: 2 },
+          { label: '批量开卡', value: 3 }
         ],
         clearable: true
       }
@@ -102,8 +103,7 @@
     try {
       const accounts = await accountList()
       accountOptions.value = accounts.map((account) => ({
-        // TODO: 后端确认 account/list 中用于展示企业账户名称的字段。
-        label: String(account.id),
+        label: account.accountName,
         value: account.id
       }))
     } finally {

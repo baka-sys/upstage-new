@@ -239,6 +239,12 @@
     "record": {
       "title": "Point Records"
     },
+    "accountManage": {
+      "title": "Enterprise Accounts"
+    },
+    "accountUrlMain": {
+      "title": "Link Management"
+    },
     "code": {
       "title": "Live Code Domains"
     },

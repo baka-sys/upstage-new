@@ -7,6 +7,7 @@ export const systemRoutes: AppRouteRecord = {
   meta: {
     title: 'menus.system.title',
     icon: 'ri:user-3-line',
+    isHide: true
     // roles: ['R_SUPER', 'R_ADMIN']
   },
   children: [
@@ -16,7 +17,7 @@ export const systemRoutes: AppRouteRecord = {
       component: '/system/user',
       meta: {
         title: 'menus.system.user',
-        keepAlive: true,
+        keepAlive: true
         // roles: ['R_SUPER', 'R_ADMIN']
       }
     },
@@ -26,7 +27,7 @@ export const systemRoutes: AppRouteRecord = {
       component: '/system/role',
       meta: {
         title: 'menus.system.role',
-        keepAlive: true,
+        keepAlive: true
         // roles: ['R_SUPER']
       }
     },

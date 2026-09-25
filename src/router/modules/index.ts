@@ -7,12 +7,16 @@ import { codeRoutes } from './code'
 import { systemDomainRoutes } from './system-domain'
 import { planConfigRoutes } from './plan-config'
 import { systemConfigRoutes } from './system-config'
+import { accountRoutes } from './account'
+import { accountUrlMainRoutes } from './account-url-main'
 
 /**
  * 导出所有模块化路由
  */
 export const routeModules: AppRouteRecord[] = [
   dashboardRoutes,
+  accountRoutes,
+  accountUrlMainRoutes,
   carmineRoutes,
   recordRoutes,
   codeRoutes,

@@ -4,42 +4,113 @@
       <template #header>
         <div class="card-header">
           <span class="card-title">系统配置参数</span>
-          <ElButton type="primary" :icon="Plus" v-ripple @click="handleAdd" />
+          <ElButton
+            type="primary"
+            :icon="Check"
+            :loading="saving"
+            :disabled="configItems.length === 0"
+            v-ripple
+            @click="handleSave"
+          >
+            保存配置
+          </ElButton>
         </div>
       </template>
 
       <div v-loading="loading" class="form-container">
-        <!-- TODO: 待产品确认表单是否允许编辑；当前无保存接口，因此统一只读展示。 -->
-        <ElForm label-width="190px" label-position="right">
+        <ElForm :model="configValues" label-width="190px" label-position="right">
           <ElFormItem
             v-for="(item, index) in configItems"
             :key="item.field || index"
             :label="item.title || item.field || '--'"
           >
-            <!-- TODO: 后端提供图片上传接口且产品确认可编辑后，再接入上传组件。 -->
-            <div v-if="isImageItem(item)" class="logo-preview">
-              <ElImage
-                v-if="getImageUrl(item)"
-                :src="getImageUrl(item)"
-                fit="contain"
-                :preview-src-list="[getImageUrl(item)]"
-                preview-teleported
+            <ElInput v-if="item.type === 'input'" v-model="configValues[item.field]" clearable />
+
+            <ElInput
+              v-else-if="item.type === 'textarea'"
+              v-model="configValues[item.field]"
+              type="textarea"
+              :rows="4"
+            />
+
+            <ElRadioGroup v-else-if="item.type === 'radio'" v-model="configValues[item.field]">
+              <ElRadio
+                v-for="option in item.options || []"
+                :key="option.value"
+                :value="option.value"
               >
-                <template #error>
-                  <div class="image-placeholder">
-                    <ElIcon>
-                      <Picture />
-                    </ElIcon>
-                  </div>
-                </template>
-              </ElImage>
-              <div v-else class="image-placeholder">
-                <ElIcon>
-                  <Picture />
-                </ElIcon>
+                {{ option.label }}
+              </ElRadio>
+            </ElRadioGroup>
+
+            <ElCheckboxGroup
+              v-else-if="item.type === 'checkbox'"
+              v-model="configValues[item.field]"
+            >
+              <ElCheckbox
+                v-for="option in item.options || []"
+                :key="option.value"
+                :value="option.value"
+              >
+                {{ option.label }}
+              </ElCheckbox>
+            </ElCheckboxGroup>
+
+            <ElSelect
+              v-else-if="item.type === 'select'"
+              v-model="configValues[item.field]"
+              :multiple="isMultipleSelect(item)"
+              clearable
+              filterable
+            >
+              <ElOption
+                v-for="option in item.options || []"
+                :key="option.value"
+                :label="option.label"
+                :value="option.value"
+              />
+            </ElSelect>
+
+            <ElSwitch
+              v-else-if="item.type === 'switch'"
+              v-model="configValues[item.field]"
+              :active-value="getSwitchValue(item, 'activeValue', '1')"
+              :inactive-value="getSwitchValue(item, 'inactiveValue', '0')"
+            />
+
+            <div v-else-if="item.type === 'upload'" class="upload-field">
+              <div class="logo-preview">
+                <ElImage
+                  v-if="getImageUrl(item)"
+                  :src="getImageUrl(item)"
+                  fit="contain"
+                  :preview-src-list="[getImageUrl(item)]"
+                  preview-teleported
+                >
+                  <template #error>
+                    <div class="image-placeholder">
+                      <ElIcon>
+                        <Picture />
+                      </ElIcon>
+                    </div>
+                  </template>
+                </ElImage>
+                <div v-else class="image-placeholder">
+                  <ElIcon>
+                    <Picture />
+                  </ElIcon>
+                </div>
               </div>
+              <ElUpload
+                accept="image/*"
+                :show-file-list="false"
+                :http-request="createUploadRequest(item)"
+              >
+                <ElButton :loading="uploadingField === item.field">选择图片</ElButton>
+              </ElUpload>
             </div>
-            <ElInput v-else :model-value="formatValue(item.value)" readonly placeholder="--" />
+
+            <ElInput v-else v-model="configValues[item.field]" clearable />
           </ElFormItem>
         </ElForm>
       </div>
@@ -48,11 +119,13 @@
 </template>
 
 <script setup lang="ts">
-  import { Picture, Plus } from '@element-plus/icons-vue'
+  import { Check, Picture } from '@element-plus/icons-vue'
+  import type { UploadRequestOptions } from 'element-plus'
   import { ElMessage } from 'element-plus'
   import {
     getConfigJson,
-    type ConfigJsonData,
+    updateConfigValues,
+    uploadConfigImage,
     type ConfigJsonItem,
     type SystemConfigCodeType
   } from '@/api/system-config'
@@ -60,45 +133,58 @@
   defineOptions({ name: 'SystemConfig' })
 
   const loading = ref(false)
+  const saving = ref(false)
+  const uploadingField = ref<string>()
   const configItems = ref<ConfigJsonItem[]>([])
+  const configValues = reactive<Record<string, any>>({})
   const SYSTEM_CONFIG_CODE_TYPE: SystemConfigCodeType = 1
 
-  const isConfigJsonItem = (value: unknown): value is ConfigJsonItem =>
-    typeof value === 'object' &&
-    value !== null &&
-    !Array.isArray(value) &&
-    typeof (value as Partial<ConfigJsonItem>).field === 'string'
-
-  const normalizeConfigItems = (data: ConfigJsonData | null | undefined): ConfigJsonItem[] => {
-    if (!data) return []
-    if (Array.isArray(data)) return data.filter(isConfigJsonItem)
-    if (isConfigJsonItem(data)) return [data]
-    if (typeof data === 'object') return Object.values(data).filter(isConfigJsonItem)
-    return []
-  }
-
-  const formatValue = (value: unknown): string => {
-    if (value === undefined || value === null || value === '') return ''
-    if (Array.isArray(value)) return value.map(String).join(', ')
-    if (['string', 'number', 'boolean'].includes(typeof value)) return String(value)
+  const parseSelectValues = (value: unknown): string[] => {
+    if (Array.isArray(value)) return value.map(String)
+    if (typeof value !== 'string' || !value) return []
     try {
-      return JSON.stringify(value)
+      const parsed = JSON.parse(value)
+      return Array.isArray(parsed) ? parsed.map(String) : [String(parsed)]
     } catch {
-      return String(value)
+      return value.split(',').filter(Boolean)
     }
   }
 
-  const isImageItem = ({ field, title, type }: ConfigJsonItem): boolean =>
-    /image|upload|picture/i.test(type) || /logo|头像|图标/i.test(`${field} ${title}`)
+  const isMultipleSelect = (item: ConfigJsonItem): boolean =>
+    item.props?.multiple === true || item.props?.multiple === 'true'
+
+  const normalizeValue = (item: ConfigJsonItem) => {
+    if (item.type === 'checkbox') {
+      return Array.isArray(item.value) ? item.value.map(String) : []
+    }
+    if (item.type === 'select') {
+      const values = parseSelectValues(item.value)
+      return isMultipleSelect(item) ? values : (values[0] ?? '')
+    }
+    return item.value == null ? '' : String(item.value)
+  }
+
+  const resetConfigValues = (items: ConfigJsonItem[]) => {
+    Object.keys(configValues).forEach((key) => delete configValues[key])
+    items.forEach((item) => {
+      configValues[item.field] = normalizeValue(item)
+    })
+  }
+
+  const getSwitchValue = (item: ConfigJsonItem, key: string, fallback: string): string => {
+    const value = item.props?.[key]
+    return typeof value === 'string' ? value : fallback
+  }
 
   const getImageUrl = (item: ConfigJsonItem): string =>
-    typeof item.value === 'string' ? item.value : ''
+    typeof configValues[item.field] === 'string' ? configValues[item.field] : ''
 
   const loadConfig = async () => {
     loading.value = true
     try {
       const data = await getConfigJson({ codeType: SYSTEM_CONFIG_CODE_TYPE })
-      configItems.value = normalizeConfigItems(data)
+      configItems.value = data
+      resetConfigValues(data)
     } catch (error) {
       configItems.value = []
       ElMessage.error(error instanceof Error ? error.message : '获取系统配置失败')
@@ -107,8 +193,39 @@
     }
   }
 
-  const handleAdd = () => {
-    // TODO: 等待后端提供新增/保存配置接口，并确认“+”按钮对应的功能。
+  const serializeValue = (value: unknown): string => {
+    if (Array.isArray(value)) return value.map(String).join(',')
+    return value == null ? '' : String(value)
+  }
+
+  const handleSave = async () => {
+    if (saving.value || configItems.value.length === 0) return
+
+    const data = Object.fromEntries(
+      configItems.value.map((item) => [item.field, serializeValue(configValues[item.field])])
+    )
+
+    saving.value = true
+    try {
+      await updateConfigValues(data)
+      ElMessage.success('系统配置保存成功')
+      await loadConfig()
+    } finally {
+      saving.value = false
+    }
+  }
+
+  const createUploadRequest = (item: ConfigJsonItem) => async (options: UploadRequestOptions) => {
+    uploadingField.value = item.field
+    try {
+      const result = await uploadConfigImage(options.file)
+      configValues[item.field] = result.filePath
+      options.onSuccess(result)
+    } catch (error) {
+      options.onError(error as Parameters<UploadRequestOptions['onError']>[0])
+    } finally {
+      uploadingField.value = undefined
+    }
   }
 
   onMounted(loadConfig)
@@ -158,6 +275,12 @@
     overflow: hidden;
     border: 1px dashed var(--el-border-color);
     border-radius: 6px;
+  }
+
+  .upload-field {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
   }
 
   .logo-preview :deep(.el-image),

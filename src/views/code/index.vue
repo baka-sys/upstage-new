@@ -65,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-  import { Delete, MoreFilled, Plus, Refresh } from '@element-plus/icons-vue'
+  import { Delete, Plus, Refresh } from '@element-plus/icons-vue'
   import { ElButton, ElMessageBox, ElTag } from 'element-plus'
   import { deleteCodeBatch, getCodePage, resetCodeBatch, updateCodeStatus } from '@/api/code'
   import { useTable } from '@/hooks/core/useTable'
@@ -154,7 +154,7 @@
         {
           prop: 'operation',
           label: '操作',
-          width: 150,
+          width: 200,
           fixed: 'right',
           formatter: (row) =>
             h('div', { class: 'code-operation' }, [
@@ -173,13 +173,24 @@
                   return '切换状态'
                 }
               ),
-              h(ElButton, {
-                link: true,
-                type: 'primary',
-                icon: MoreFilled,
-                title: '更多',
-                onClick: () => handleMore(row)
-              })
+              h(
+                ElButton,
+                {
+                  link: true,
+                  type: 'primary',
+                  onClick: () => handleEdit(row)
+                },
+                () => '编辑'
+              ),
+              h(
+                ElButton,
+                {
+                  link: true,
+                  type: 'danger',
+                  onClick: () => handleDelete(row)
+                },
+                () => '删除'
+              )
             ])
         }
       ]
@@ -335,9 +346,14 @@
     }
   }
 
-  const handleMore = (row: CodeListItem) => {
+  const handleEdit = (row: CodeListItem) => {
     void row
-    // TODO: 后端确认更多操作项及对应接口后实现。
+    // TODO: 接入单条编辑功能及对应接口。
+  }
+
+  const handleDelete = (row: CodeListItem) => {
+    void row
+    // TODO: 接入单条删除功能及对应接口。
   }
 </script>
 

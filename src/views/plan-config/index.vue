@@ -31,7 +31,12 @@
 <script setup lang="ts">
   import { Plus } from '@element-plus/icons-vue'
   import { ElButton, ElMessageBox, ElTag } from 'element-plus'
-  import { deletePlanConfig, getPlanConfigPage, updatePlanConfigStatus } from '@/api/plan-config'
+  import {
+    deletePlanConfig,
+    getPlanConfigPage,
+    setPlanConfigDefault,
+    updatePlanConfigStatus
+  } from '@/api/plan-config'
   import { useTable } from '@/hooks/core/useTable'
   import PlanConfigAddDialog from './modules/plan-config-add-dialog.vue'
 
@@ -40,6 +45,7 @@
   type PlanConfigListItem = Api.PlanConfigManage.PlanConfigPageListItem
 
   const statusUpdatingId = ref<number>()
+  const defaultUpdatingId = ref<number>()
   const deletingId = ref<number>()
   const addDialogVisible = ref(false)
   const editDialogVisible = ref(false)
@@ -48,6 +54,10 @@
   const PLAN_STATUS_MAP: Record<0 | 1, { label: string; tagType: 'info' | 'success' }> = {
     0: { label: '开启', tagType: 'success' },
     1: { label: '关闭', tagType: 'info' }
+  }
+
+  const PLAN_TYPE_MAP: Record<Api.PlanConfigManage.PlanType, string> = {
+    0: '验证码'
   }
 
   const {
@@ -76,6 +86,12 @@
           formatter: (row) => row.title || '--'
         },
         {
+          prop: 'type',
+          label: '方案类型',
+          width: 120,
+          formatter: (row) => PLAN_TYPE_MAP[row.type as Api.PlanConfigManage.PlanType] ?? '--'
+        },
+        {
           prop: 'status',
           label: '状态',
           width: 120,
@@ -85,14 +101,37 @@
           }
         },
         {
+          prop: 'defaultStatus',
+          label: '默认方案',
+          width: 120,
+          formatter: (row) =>
+            row.defaultStatus === 0
+              ? h(ElTag, { type: 'warning' }, () => '默认')
+              : row.defaultStatus === 1
+                ? h(ElTag, { type: 'info' }, () => '非默认')
+                : '--'
+        },
+        {
           prop: 'operation',
           label: '操作',
-          width: 220,
+          width: 300,
           fixed: 'right',
           formatter: (row) => {
             const actionText = row.status === 0 ? '关闭' : row.status === 1 ? '开启' : '--'
+            const isDefault = row.defaultStatus === 0
 
             return h('div', { class: 'plan-config-operation' }, [
+              h(
+                ElButton,
+                {
+                  link: true,
+                  type: isDefault ? 'info' : 'warning',
+                  loading: defaultUpdatingId.value === row.id,
+                  disabled: isDefault || defaultUpdatingId.value != null,
+                  onClick: () => handleSetDefault(row)
+                },
+                () => (isDefault ? '已默认' : '设为默认')
+              ),
               h(
                 ElButton,
                 {
@@ -160,6 +199,35 @@
       // 请求错误由统一 HTTP 拦截器提示，列表保持后端返回的原状态。
     } finally {
       statusUpdatingId.value = undefined
+    }
+  }
+
+  const handleSetDefault = async (row: PlanConfigListItem) => {
+    if (row.id == null || row.defaultStatus === 0 || defaultUpdatingId.value != null) return
+
+    try {
+      await ElMessageBox.confirm(
+        `确定将方案“${row.title || '--'}”设置为默认方案吗？`,
+        '设置默认方案',
+        {
+          confirmButtonText: '确定设置',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      )
+    } catch {
+      return
+    }
+
+    defaultUpdatingId.value = row.id
+    try {
+      await setPlanConfigDefault({ id: row.id })
+      ElMessage.success('默认方案设置成功')
+      await refreshUpdate()
+    } catch {
+      // 请求错误由统一 HTTP 拦截器提示，失败时保留当前默认状态。
+    } finally {
+      defaultUpdatingId.value = undefined
     }
   }
 

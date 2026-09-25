@@ -146,6 +146,8 @@
     img: string
     content: string
     status: Api.PlanConfigManage.PlanStatus
+    type: Api.PlanConfigManage.PlanType
+    defaultStatus: Api.PlanConfigManage.PlanDefaultStatus
     questionList: QuestionItem[]
   }
 
@@ -168,6 +170,8 @@
     img: '',
     content: '',
     status: 0,
+    type: 0,
+    defaultStatus: 1,
     questionList: []
   })
 
@@ -231,6 +235,11 @@
       content: isEdit.value ? planData?.content || '' : '',
       status:
         isEdit.value && (planData?.status === 0 || planData?.status === 1) ? planData.status : 0,
+      type: 0,
+      defaultStatus:
+        isEdit.value && (planData?.defaultStatus === 0 || planData?.defaultStatus === 1)
+          ? planData.defaultStatus
+          : 1,
       questionList: isEdit.value ? parseQuestionList(planData?.content) : []
     })
     submitting.value = false
@@ -282,7 +291,9 @@
         title: formData.title.trim(),
         img: formData.img.trim(),
         content: formData.content,
-        status: formData.status
+        status: formData.status,
+        type: formData.type,
+        defaultStatus: formData.defaultStatus
       }
 
       if (isEdit.value) {

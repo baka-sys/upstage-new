@@ -36,7 +36,7 @@
   import { ElButton, ElTag } from 'element-plus'
   import { getSystemDomainPage } from '@/api/system-domain'
   import { useTable } from '@/hooks/core/useTable'
-  import { DOMAIN_STATUS_MAP, DOMAIN_TYPE_MAP } from './constants'
+  import { DOMAIN_STATUS_MAP, DOMAIN_TYPE_MAP, DOMAIN_TYPE_TAG_MAP } from './constants'
   import SystemDomainBatchAddDialog from './modules/system-domain-batch-add-dialog.vue'
   import SystemDomainSearch from './modules/system-domain-search.vue'
 
@@ -73,7 +73,12 @@
           prop: 'type',
           label: '域名类型',
           minWidth: 140,
-          formatter: (row) => DOMAIN_TYPE_MAP[row.type] ?? '--'
+          formatter: (row) => {
+            const label = DOMAIN_TYPE_MAP[row.type]
+            const tagType = DOMAIN_TYPE_TAG_MAP[row.type as keyof typeof DOMAIN_TYPE_TAG_MAP]
+            if (!label || !tagType) return '--'
+            return h(ElTag, { type: tagType }, () => label)
+          }
         },
         {
           prop: 'domainUrl',

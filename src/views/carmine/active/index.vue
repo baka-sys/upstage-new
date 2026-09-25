@@ -85,6 +85,12 @@
         { type: 'selection', width: 50 },
         { prop: 'carmine', label: '卡密', minWidth: 180, showOverflowTooltip: true },
         { prop: 'name', label: '名称', minWidth: 120, showOverflowTooltip: true },
+        {
+          prop: 'accountName',
+          label: '企业账号名称',
+          minWidth: 150,
+          showOverflowTooltip: true
+        },
         { prop: 'maxNumber', label: '限制人数', width: 100 },
         {
           prop: 'number',

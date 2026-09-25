@@ -31,7 +31,8 @@
 
   const pointTypeMap: Record<number, string> = {
     1: '充值',
-    2: '消费'
+    2: '消费',
+    3: '批量开卡'
   }
 
   const createEmptySearchForm = (): SearchForm => ({
@@ -65,6 +66,12 @@
       },
       columnsFactory: () => [
         {
+          prop: 'accountId',
+          label: '企业账户ID',
+          minWidth: 130,
+          formatter: (row) => formatValue(row.accountId)
+        },
+        {
           prop: 'type',
           label: '积分类型',
           minWidth: 120,
@@ -87,6 +94,19 @@
           label: '操作后积分',
           minWidth: 140,
           formatter: (row) => formatValue(row.afterOperation)
+        },
+        {
+          prop: 'remark',
+          label: '备注',
+          minWidth: 220,
+          showOverflowTooltip: true,
+          formatter: (row) => formatValue(row.remark)
+        },
+        {
+          prop: 'ipAddress',
+          label: 'IP地址',
+          minWidth: 150,
+          formatter: (row) => formatValue(row.ipAddress)
         },
         {
           prop: 'createTime',

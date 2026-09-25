@@ -246,6 +246,12 @@
     "record": {
       "title": "积分记录"
     },
+    "accountManage": {
+      "title": "企业账号管理"
+    },
+    "accountUrlMain": {
+      "title": "链接管理"
+    },
     "code": {
       "title": "活码域名"
     },
