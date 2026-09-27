@@ -1,7 +1,12 @@
 <template>
   <div class="user-page art-full-height">
     <!-- 搜索栏 -->
-    <UserSearch v-model="searchForm" @search="handleSearch" @reset="resetSearchParams"></UserSearch>
+    <UserSearch
+      v-model="searchForm"
+      :loading="loading"
+      @search="handleSearch"
+      @reset="resetSearchParams"
+    />
 
     <ElCard class="art-table-card">
       <!-- 表格头部 -->

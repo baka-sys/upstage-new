@@ -30,8 +30,10 @@
     </ElForm>
     <template #footer>
       <div class="dialog-footer">
-        <ElButton @click="dialogVisible = false">取消</ElButton>
-        <ElButton type="primary" @click="handleSubmit">提交</ElButton>
+        <ElButton :disabled="submitting" @click="dialogVisible = false">取消</ElButton>
+        <ElButton type="primary" :loading="submitting" :disabled="submitting" @click="handleSubmit">
+          {{ submitting ? '正在执行' : '提交' }}
+        </ElButton>
       </div>
     </template>
   </ElDialog>
@@ -66,6 +68,7 @@
 
   // 表单实例
   const formRef = ref<FormInstance>()
+  const submitting = ref(false)
 
   // 表单数据
   const formData = reactive<Api.CarmineMange.RenewCarmineParams>({
@@ -86,25 +89,29 @@
    * 验证通过后触发提交事件
    */
   const handleSubmit = async () => {
-    if (!formRef.value) return
+    if (!formRef.value || submitting.value) return
 
-    await formRef.value.validate(async (valid) => {
-      if (valid) {
-        const request: Api.CarmineMange.RenewCarmineParams = {
-          carmines: formData.carmines
-            .split(/\r?\n/)
-            .map((carmine) => carmine.trim())
-            .filter(Boolean)
-            .join(','),
-          days: formData.days,
-          maxNumber: formData.maxNumber
-        }
+    const valid = await formRef.value.validate().catch(() => false)
+    if (!valid) return
 
-        await renewCarmines(request)
-        ElMessage.success('续费成功')
-        dialogVisible.value = false
-        emit('submit')
-      }
-    })
+    const request: Api.CarmineMange.RenewCarmineParams = {
+      carmines: formData.carmines
+        .split(/\r?\n/)
+        .map((carmine) => carmine.trim())
+        .filter(Boolean)
+        .join(','),
+      days: formData.days,
+      maxNumber: formData.maxNumber
+    }
+
+    submitting.value = true
+    try {
+      await renewCarmines(request)
+      ElMessage.success('续费成功')
+      dialogVisible.value = false
+      emit('submit')
+    } finally {
+      submitting.value = false
+    }
   }
 </script>

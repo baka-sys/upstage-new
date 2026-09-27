@@ -4,6 +4,7 @@
     v-model="formData"
     :items="formItems"
     :rules="{}"
+    :search-loading="loading"
     :span="6"
     :show-expand="false"
     label-width="0"
@@ -19,6 +20,7 @@
 
   interface Props {
     modelValue: SearchForm
+    loading?: boolean
   }
 
   interface Emits {

@@ -4,6 +4,7 @@
     v-model="formData"
     :items="formItems"
     :rules="rules"
+    :search-loading="loading"
     @reset="handleReset"
     @search="handleSearch"
   >
@@ -13,6 +14,7 @@
 <script setup lang="ts">
   interface Props {
     modelValue: Api.SystemManage.UserSearchParams
+    loading?: boolean
   }
   interface Emits {
     (e: 'update:modelValue', value: Api.SystemManage.UserSearchParams): void

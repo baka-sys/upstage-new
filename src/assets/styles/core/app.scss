@@ -1,4 +1,14 @@
 // 全局样式
+// 始终为页面滚动条保留空间，避免弹窗锁定页面滚动后内容左右跳动。
+html {
+  scrollbar-gutter: stable;
+}
+
+// Element Plus 打开弹窗时会写入临时 body 宽度；已有固定滚动条槽时无需再次补偿。
+body.el-popup-parent--hidden {
+  width: auto !important;
+}
+
 // 顶部进度条颜色
 #nprogress .bar {
   z-index: 2400;

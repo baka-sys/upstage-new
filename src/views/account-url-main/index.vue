@@ -18,7 +18,12 @@
           </div>
         </template>
         <template #right>
-          <AccountUrlMainSearch v-model="searchForm" @search="handleSearch" @reset="handleReset" />
+          <AccountUrlMainSearch
+            v-model="searchForm"
+            :loading="loading"
+            @search="handleSearch"
+            @reset="handleReset"
+          />
         </template>
       </ArtTableHeader>
 

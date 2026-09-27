@@ -33,7 +33,9 @@
 
     <template #footer>
       <ElButton :disabled="saving" @click="handleClose">取消</ElButton>
-      <ElButton type="primary" :loading="saving" @click="handleSubmit">保存</ElButton>
+      <ElButton type="primary" :loading="saving" :disabled="saving" @click="handleSubmit">
+        {{ saving ? '正在执行' : '保存' }}
+      </ElButton>
     </template>
   </ElDialog>
 </template>
@@ -140,7 +142,7 @@
   }
 
   const handleSubmit = async () => {
-    if (!formRef.value) return
+    if (!formRef.value || saving.value) return
     const valid = await formRef.value.validate().catch(() => false)
     if (!valid) return
     if (!form.id || !form.mainUserId) {

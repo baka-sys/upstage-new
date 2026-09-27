@@ -24,8 +24,17 @@
       </ElSelect>
     </ElFormItem>
     <ElFormItem>
-      <ElButton v-ripple @click="handleReset">重置</ElButton>
-      <ElButton v-ripple type="primary" :icon="Search" @click="handleSearch">搜索</ElButton>
+      <ElButton v-ripple :disabled="loading" @click="handleReset">重置</ElButton>
+      <ElButton
+        v-ripple
+        type="primary"
+        :icon="Search"
+        :loading="loading"
+        :disabled="loading"
+        @click="handleSearch"
+      >
+        {{ loading ? '正在执行' : '搜索' }}
+      </ElButton>
     </ElFormItem>
   </ElForm>
 </template>
@@ -38,6 +47,7 @@
 
   interface Props {
     modelValue: SearchForm
+    loading?: boolean
   }
 
   interface Emits {
@@ -55,6 +65,7 @@
   })
 
   const handleSearch = () => {
+    if (props.loading) return
     const domainName = formData.value.domainName?.trim()
     emit('search', {
       domainName: domainName || undefined,
@@ -63,6 +74,7 @@
   }
 
   const handleReset = () => {
+    if (props.loading) return
     emit('update:modelValue', {})
     emit('reset')
   }

@@ -39,7 +39,12 @@
           </ElSpace>
         </template>
         <template #right>
-          <CodeSearch v-model="searchForm" @search="handleSearch" @reset="handleReset" />
+          <CodeSearch
+            v-model="searchForm"
+            :loading="loading"
+            @search="handleSearch"
+            @reset="handleReset"
+          />
         </template>
       </ArtTableHeader>
 

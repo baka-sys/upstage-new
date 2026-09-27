@@ -32,7 +32,9 @@
     <template #footer>
       <div class="dialog-footer">
         <ElButton :disabled="submitting" @click="dialogVisible = false">取消</ElButton>
-        <ElButton type="primary" :loading="submitting" @click="handleSubmit">保存</ElButton>
+        <ElButton type="primary" :loading="submitting" :disabled="submitting" @click="handleSubmit">
+          {{ submitting ? '正在执行' : '保存' }}
+        </ElButton>
       </div>
     </template>
   </ElDialog>

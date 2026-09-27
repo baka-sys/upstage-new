@@ -4,6 +4,7 @@
     v-model="formData"
     :items="formItems"
     :rules="{}"
+    :search-loading="loading"
     label-width="120px"
     @reset="emit('reset')"
     @search="handleSearch"
@@ -15,6 +16,7 @@
 
   interface Props {
     modelValue: SearchForm
+    loading?: boolean
   }
 
   interface Emits {

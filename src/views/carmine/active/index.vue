@@ -1,6 +1,11 @@
 <template>
   <div class="art-full-height">
-    <ActiveSearch v-model="searchForm" @search="handleSearch" @reset="handleReset" />
+    <ActiveSearch
+      v-model="searchForm"
+      :loading="loading"
+      @search="handleSearch"
+      @reset="handleReset"
+    />
 
     <ElCard class="art-table-card">
       <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="refreshData">

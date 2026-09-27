@@ -4,6 +4,7 @@
     v-model="formData"
     :items="formItems"
     :rules="rules"
+    :search-loading="loading"
     @reset="handleReset"
     @search="handleSearch"
   >
@@ -17,6 +18,7 @@
 
   interface Props {
     modelValue: RoleSearchFormParams
+    loading?: boolean
   }
 
   interface Emits {

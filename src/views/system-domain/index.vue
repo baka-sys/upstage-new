@@ -8,7 +8,12 @@
           </ElButton>
         </template>
         <template #right>
-          <SystemDomainSearch v-model="searchForm" @search="handleSearch" @reset="handleReset" />
+          <SystemDomainSearch
+            v-model="searchForm"
+            :loading="loading"
+            @search="handleSearch"
+            @reset="handleReset"
+          />
         </template>
       </ArtTableHeader>
 

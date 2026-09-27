@@ -4,6 +4,7 @@
     <RoleSearch
       v-show="showSearchBar"
       v-model="searchForm"
+      :loading="loading"
       @search="handleSearch"
       @reset="resetSearchParams"
     ></RoleSearch>

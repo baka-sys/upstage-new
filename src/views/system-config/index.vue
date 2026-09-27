@@ -8,11 +8,11 @@
             type="primary"
             :icon="Check"
             :loading="saving"
-            :disabled="configItems.length === 0"
+            :disabled="configItems.length === 0 || saving"
             v-ripple
             @click="handleSave"
           >
-            保存配置
+            {{ saving ? '正在执行' : '保存配置' }}
           </ElButton>
         </div>
       </template>

@@ -36,7 +36,9 @@
 
     <template #footer>
       <ElButton :disabled="submitting" @click="dialogVisible = false">取消</ElButton>
-      <ElButton type="primary" :loading="submitting" @click="handleSubmit">确认充值</ElButton>
+      <ElButton type="primary" :loading="submitting" :disabled="submitting" @click="handleSubmit">
+        {{ submitting ? '正在执行' : '确认充值' }}
+      </ElButton>
     </template>
   </ElDialog>
 </template>

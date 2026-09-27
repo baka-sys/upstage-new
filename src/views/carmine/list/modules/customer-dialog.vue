@@ -69,8 +69,10 @@
     </ElForm>
     <template #footer>
       <div class="dialog-footer">
-        <ElButton @click="dialogVisible = false">取消</ElButton>
-        <ElButton type="primary" @click="handleSubmit">提交</ElButton>
+        <ElButton :disabled="submitting" @click="dialogVisible = false">取消</ElButton>
+        <ElButton type="primary" :loading="submitting" :disabled="submitting" @click="handleSubmit">
+          {{ submitting ? '正在执行' : '提交' }}
+        </ElButton>
       </div>
     </template>
   </ElDialog>
@@ -102,6 +104,7 @@
 
   // 表单实例
   const formRef = ref<FormInstance>()
+  const submitting = ref(false)
   const accountLoading = ref(false)
   const accountOptions = ref<Api.CarmineMange.AccountListItem[]>([])
 
@@ -160,28 +163,27 @@
    * 验证通过后触发提交事件
    */
   const handleSubmit = async () => {
-    if (!formRef.value) return
+    if (!formRef.value || submitting.value) return
 
-    await formRef.value.validate(async (valid) => {
-      if (valid) {
-        const result = await generateCarmines(formData)
-        const url = window.URL.createObjectURL(new Blob([result]))
-        const link = document.createElement('a')
-        link.href = url
-        link.setAttribute('download', '卡密列表.txt') // 设置下载文件的名称
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        window.URL.revokeObjectURL(url)
-        ElMessage.success('生成成功')
-        dialogVisible.value = false
-        emit('submit')
-        // if(result.code === 200){
-        //   ElMessage.success("生成成功")
-        //   dialogVisible.value = false
-        //   emit('submit')
-        // }
-      }
-    })
+    const valid = await formRef.value.validate().catch(() => false)
+    if (!valid) return
+
+    submitting.value = true
+    try {
+      const result = await generateCarmines(formData)
+      const url = window.URL.createObjectURL(new Blob([result]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', '卡密列表.txt')
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      ElMessage.success('生成成功')
+      dialogVisible.value = false
+      emit('submit')
+    } finally {
+      submitting.value = false
+    }
   }
 </script>

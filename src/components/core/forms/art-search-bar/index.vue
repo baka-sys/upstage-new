@@ -72,7 +72,13 @@
         <ElCol :xs="24" :sm="24" :md="span" :lg="span" :xl="span" class="action-column">
           <div class="action-buttons-wrapper" :style="actionButtonsStyle">
             <div class="form-buttons">
-              <ElButton v-if="showReset" class="reset-button" @click="handleReset" v-ripple>
+              <ElButton
+                v-if="showReset"
+                class="reset-button"
+                :disabled="searchLoading"
+                @click="handleReset"
+                v-ripple
+              >
                 {{ t('table.searchBar.reset') }}
               </ElButton>
               <ElButton
@@ -81,9 +87,10 @@
                 class="search-button"
                 @click="handleSearch"
                 v-ripple
-                :disabled="disabledSearch"
+                :loading="searchLoading"
+                :disabled="disabledSearch || searchLoading"
               >
-                {{ t('table.searchBar.search') }}
+                {{ searchLoading ? '正在执行' : t('table.searchBar.search') }}
               </ElButton>
             </div>
             <div v-if="shouldShowExpandToggle" class="filter-toggle" @click="toggleExpand">
@@ -209,6 +216,8 @@
     showSearch?: boolean
     /** 是否禁用搜索按钮 */
     disabledSearch?: boolean
+    /** 查询请求是否正在执行 */
+    searchLoading?: boolean
     /** 搜索时是否清洗空值 */
     sanitizeOutput?: Partial<SanitizeOutputOptions>
   }
@@ -241,6 +250,7 @@
     showReset: true,
     showSearch: true,
     disabledSearch: false,
+    searchLoading: false,
     sanitizeOutput: () => ({})
   })
 
@@ -472,6 +482,7 @@
    * 处理重置事件
    */
   const handleReset = () => {
+    if (props.searchLoading) return
     // 重置表单字段（UI 层）
     formInstance.value?.resetFields()
 
@@ -489,6 +500,7 @@
    * 处理搜索事件
    */
   const handleSearch = () => {
+    if (props.searchLoading || props.disabledSearch) return
     // 对外只抛出清洗后的查询参数，避免接口收到空数组/空字符串。
     emit('search', getSanitizedOutput())
   }
