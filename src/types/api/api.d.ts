@@ -46,7 +46,7 @@ declare namespace Api {
     }
 
     /** 通用搜索参数 */
-    type CommonSearchParams = Pick<PaginationParams, 'page' | 'limit'>
+    type CommonSearchParams = Pick<PaginationParams, 'current' | 'size'>
 
     /** 分页响应基础结构 */
     interface PaginatedResponse<T = any> {
