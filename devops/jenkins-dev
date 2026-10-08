@@ -1,0 +1,101 @@
+// 1. 保持和你后端完全一致的服务器连接信息函数
+def getHost(){
+    def remote = [:]
+    remote.name = 'root'
+    remote.user = 'root'
+    remote.password = '40beA6pGL2pB0j' 
+    remote.host = '43.199.7.16'
+    remote.port = 22
+    remote.allowAnyHosts = true
+    return remote
+}
+
+pipeline {
+    // 2. 动态使用 Node 容器进行隔离编译，并挂载本地缓存加速，不污染 Jenkins 环境
+    agent {
+        docker {
+            image 'node:21-alpine' // 可根据你的前端项目依赖调整为 node:18-alpine 等
+            args '-v $HOME/.npm:/root/.npm'
+        }
+    }
+
+    environment {
+        // 统一配置前端项目的部署路径
+        REMOTE_DIR = "/www/wwwroot/enterprise"       // 你的前端网页在远程服务器上的存放目录
+        BACKUP_DIR = "/www/wwwroot/enterprise/backup" // 前端历史版本备份目录
+        DIST_NAME  = "dist"                         // Vue 打包生成的默认文件夹名
+    }
+
+    stages {
+        stage('初始化服务器') {
+            steps {
+                script {
+                    // 将函数返回的 map 赋值给全局变量
+                    server = getHost()
+                }
+            }
+        }
+        
+        stage('构建') {
+            steps {
+                echo '正在使用 Node 容器安装依赖并打包...'
+                // 依次执行换国内源、安装依赖、生产环境编译
+                sh '''
+                    npm install
+                    npm run build
+                '''
+                echo '正在将打包后的静态文件压缩成 tar.gz 文件...'
+                // 将编译出的 dist 文件夹压缩，方便通过 SSH 高速传输
+                sh "tar -czf ${env.DIST_NAME}.tar.gz ${env.DIST_NAME}"
+            }
+        }
+        
+        stage('远程备份') {
+            steps {
+                echo '正在远程服务器上检查并备份旧网页版本...'
+                // 在传输新版前，如果发现服务器上已经有旧的 dist 文件夹，将其打包压缩存入 backup 并带上精确时间戳
+                sshCommand remote: server, command: """
+                    mkdir -p ${env.BACKUP_DIR}
+                    if [ -d ${env.REMOTE_DIR}/${env.DIST_NAME} ]; then
+                        cd ${env.REMOTE_DIR}
+                        tar -czf ${env.BACKUP_DIR}/${env.DIST_NAME}_\$(date +%Y%m%d_%H%M%S).tar.gz ${env.DIST_NAME}
+                        echo "旧版本网页备份成功！"
+                        # 清理旧的目录，防止新旧代码文件混在一起导致缓存污染
+                        rm -rf ${env.REMOTE_DIR}/${env.DIST_NAME}
+                    else
+                        echo "未发现旧版网页目录，跳过备份。"
+                    fi
+                """
+            }
+        }
+
+        stage('发布与重启') {
+            steps {
+                echo '1. 正在上传最新的前端压缩包...'
+                // 将本地刚刚打包好的 dist.tar.gz 传输到远程服务器对应目录
+                sshPut remote: server, from: "${env.DIST_NAME}.tar.gz", into: "${env.REMOTE_DIR}/"
+
+                echo '2. 正在远程服务器上解压并刷新服务...'
+                // 远程解压覆盖，解压完后删除临时压缩包
+                sshCommand remote: server, command: """
+                    cd ${env.REMOTE_DIR}
+                    tar -xzf ${env.DIST_NAME}.tar.gz
+                    rm -f ${env.DIST_NAME}.tar.gz
+                    
+                    # 💡 提示：如果你的 Nginx 在发布后需要重载，可以把下方注释去掉
+                    # nginx -s reload
+                    echo "success"
+                """
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo '🎉 流水线执行成功，Vue 前端项目已成功备份并发布上线！'
+        }
+        failure {
+            echo '❌ 流x线执行失败，请检查上方日志。'
+        }
+    }
+}

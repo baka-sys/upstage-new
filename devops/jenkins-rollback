@@ -1,0 +1,75 @@
+// 1. 保持和你调通的前后端完全一致的服务器连接信息函数
+def getHost(){
+    def remote = [:]
+    remote.name = 'root'
+    remote.user = 'root'
+    remote.password = '40beA6pGL2pB0j' 
+    remote.host = '43.199.7.16'
+    remote.port = 22
+    remote.allowAnyHosts = true
+    return remote
+}
+
+pipeline {
+    // 纯远程命令执行，选择 any，几秒钟即可自动完成
+    agent any
+
+    environment {
+        // 必须与前端发布脚本中的路径保持完全一致
+        REMOTE_DIR = "/www/wwwroot/upstage-new"       
+        BACKUP_DIR = "/www/wwwroot/upstage-new/backup" 
+        DIST_NAME  = "dist"                         
+    }
+
+    stages {
+        stage('一键回滚最新网页备份') {
+            steps {
+                script {
+                    // 初始化服务器对象
+                    server = getHost()
+                    echo '正在连接远程服务器，直接在服务器内部闭环执行前端一键回滚...'
+                    
+                    // 💡 闭环脚本逻辑：
+                    // 1. 自动寻找 backup 目录下最新的一个 tar.gz 备份包
+                    // 2. 清空当前的运行目录，防止历史缓存文件污染
+                    // 3. 将最新的备份包解压回运行目录
+                    sshCommand remote: server, command: """
+                        source /etc/profile
+                        cd ${env.REMOTE_DIR}
+                        
+                        echo "1. 正在寻找最新的前端网页备份文件..."
+                        LATEST_BACKUP=\$(ls -t ${env.BACKUP_DIR} | grep '^${env.DIST_NAME}_.*\\.tar\\.gz\$' | head -n 1)
+                        
+                        if [ -n "\$LATEST_BACKUP" ] && [ -f "${env.BACKUP_DIR}/\$LATEST_BACKUP" ]; then
+                            echo "👉 成功锁定最新备份: \$LATEST_BACKUP"
+                            
+                            echo "2. 正在清理当前线上运行的旧静态资源目录..."
+                            rm -rf ${env.REMOTE_DIR}/${env.DIST_NAME}
+                            
+                            echo "3. 正在从最新备份包恢复静态资源..."
+                            # 解压备份的 tar.gz 到当前目录
+                            tar -xzf ${env.BACKUP_DIR}/\$LATEST_BACKUP -C ${env.REMOTE_DIR}/
+                            
+                            # 💡 提示：如果你的 Nginx 在回滚后需要重载，可以把下方注释去掉
+                            # /etc/init.d/nginx reload
+                            
+                            echo "🎉 前端网页回滚指令执行完毕！"
+                        else
+                            echo "❌ 错误：未在备份目录 ${env.BACKUP_DIR} 下找到任何有效的前端备份包！"
+                            exit 1
+                        fi
+                    """
+                }
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo '🎉 完美通关！Vue 前端项目已全自动退回到最新备份版本！'
+        }
+        failure {
+            echo '❌ 自动回滚失败，请检查上方控制台日志。'
+        }
+    }
+}
