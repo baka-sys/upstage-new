@@ -14,8 +14,8 @@ pipeline {
     // 2. 动态使用 Node 容器进行隔离编译，并挂载本地缓存加速，不污染 Jenkins 环境
     agent {
         docker {
-            image 'node:21-alpine' // 可根据你的前端项目依赖调整为 node:18-alpine 等
-            args '-v $HOME/.npm:/root/.npm'
+            image 'node:22-bookworm'
+			args '--shm-size=1g -u root'
         }
     }
 
@@ -37,18 +37,40 @@ pipeline {
         }
         
         stage('构建') {
-            steps {
-                echo '正在使用 Node 容器安装依赖并打包...'
-                // 依次执行换国内源、安装依赖、生产环境编译
-                sh '''
-                    npm install
-                    npm run build
-                '''
-                echo '正在将打包后的静态文件压缩成 tar.gz 文件...'
-                // 将编译出的 dist 文件夹压缩，方便通过 SSH 高速传输
-                sh "tar -czf ${env.DIST_NAME}.tar.gz ${env.DIST_NAME}"
-            }
-        }
+			steps {
+				echo '正在使用 Node 容器安装依赖并打包...'
+
+				sh '''
+					set -e
+
+					echo "===== 环境信息 ====="
+					node -v
+					npm -v
+					free -h || true
+					df -h /dev/shm || true
+
+					echo "===== 删除旧依赖 ====="
+					rm -rf node_modules
+
+					echo "===== 安装依赖 ====="
+					if [ -f package-lock.json ]; then
+						npm ci --no-audit --progress=false
+					else
+						npm install --no-audit --progress=false
+					fi
+
+					echo "===== 编译项目 ====="
+					NODE_OPTIONS="--max-old-space-size=2048" npm run build
+
+					echo "===== 检查编译结果 ====="
+					test -f dist/index.html
+				'''
+
+				echo '正在压缩 dist...'
+
+				sh "tar -czf ${env.DIST_NAME}.tar.gz ${env.DIST_NAME}"
+			}
+		}
         
         stage('远程备份') {
             steps {
