@@ -21,8 +21,8 @@ pipeline {
 
     environment {
         // 统一配置前端项目的部署路径
-        REMOTE_DIR = "/www/wwwroot/enterprise"       // 你的前端网页在远程服务器上的存放目录
-        BACKUP_DIR = "/www/wwwroot/enterprise/backup" // 前端历史版本备份目录
+        REMOTE_DIR = "/www/wwwroot/upstage-new"       // 你的前端网页在远程服务器上的存放目录
+        BACKUP_DIR = "/www/wwwroot/upstage-new/backup" // 前端历史版本备份目录
         DIST_NAME  = "dist"                         // Vue 打包生成的默认文件夹名
     }
 
