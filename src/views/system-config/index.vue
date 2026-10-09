@@ -183,8 +183,8 @@
     loading.value = true
     try {
       const data = await getConfigJson({ codeType: SYSTEM_CONFIG_CODE_TYPE })
-      configItems.value = data
-      resetConfigValues(data)
+      configItems.value = data.data
+      resetConfigValues(data.data)
     } catch (error) {
       configItems.value = []
       ElMessage.error(error instanceof Error ? error.message : '获取系统配置失败')

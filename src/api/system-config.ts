@@ -40,8 +40,8 @@ export interface ConfigImageUploadResult {
 }
 
 /** 获取系统配置表单数据 */
-export function getConfigJson(params: ConfigJsonParams) {
-  return request.get<ConfigJsonData>({
+export function getConfigJson(params: any) {
+  return request.get<any>({
     url: '/config/getJson',
     params,
     // 页面按当前业务文案提示错误，避免与请求层重复提示。

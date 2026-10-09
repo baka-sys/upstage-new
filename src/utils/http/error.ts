@@ -24,6 +24,7 @@
 import { AxiosError } from 'axios'
 import { ApiStatus } from './status'
 import { $t } from '@/locales'
+ import { ElMessage, ElLoading } from 'element-plus';
 
 // 错误响应接口
 export interface ErrorResponse {
@@ -153,9 +154,9 @@ export function handleError(error: AxiosError<ErrorResponse>): never {
  * @param error 错误对象
  * @param showMessage 是否显示错误消息
  */
-export function showError(error: HttpError, showMessage: boolean = true): void {
+export function showError(error: any, showMessage: boolean = true): void {
   if (showMessage) {
-    ElMessage.error(error.message)
+    ElMessage.error(error.data.message)
   }
   // 记录错误日志
   console.error('[HTTP Error]', error.toLogData())

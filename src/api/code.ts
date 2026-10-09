@@ -35,7 +35,7 @@ export function addCodeBatch(params: Api.CodeManage.AddCodeBatchParams) {
 }
 
 /** 逻辑批量重置活码域名；参数通过 query 提交 */
-export function resetCodeBatch(params: Api.CodeManage.ResetCodeBatchParams) {
+export function resetCodeBatch(params: any) {
   return request.post<void>({
     url: '/code/deleteSet',
     params,
@@ -45,9 +45,9 @@ export function resetCodeBatch(params: Api.CodeManage.ResetCodeBatchParams) {
 }
 
 /** 逻辑批量删除活码域名；参数通过 query 提交 */
-export function deleteCodeBatch(params: Api.CodeManage.DeleteCodeBatchParams) {
+export function deleteCodeBatch(params: any) {
   return request.post<void>({
-    url: '/code/deleteBatch',
+    url: '/code/delete',
     params,
     // deleteBatch 同样由后端 @RequestParam 接收，必须保留在 URL query 中。
     data: {}

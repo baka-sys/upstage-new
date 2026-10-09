@@ -35,11 +35,12 @@
         </ElSelect>
       </ElFormItem>
 
-      <ElFormItem v-if="!isExclusiveType" label="是否直连域名" prop="direct">
-        <ElRadioGroup v-model="formData.direct">
-          <ElRadio :value="0">否</ElRadio>
-          <ElRadio :value="1">是</ElRadio>
-        </ElRadioGroup>
+      <ElFormItem v-if="!isExclusiveType" label="域名类型" prop="direct">
+        <ElSelect v-model="formData.direct" class="full-width" placeholder="请选择域名类型">
+          <ElOption label="口子域名":value="0"/>
+          <ElOption label="直连域名":value="1"/>
+          <ElOption label="备案域名":value="2"/>
+        </ElSelect>
       </ElFormItem>
     </ElForm>
 
@@ -126,33 +127,14 @@
     callback()
   }
 
-  const rules: FormRules<BatchAddForm> = {
-    domainNames: [{ validator: validateDomainNames, trigger: 'blur' }],
-    type: [{ validator: validateRequiredNumber, trigger: 'change' }],
-    platformType: [
-      {
-        validator: (_rule, value, callback) => {
-          if (isExclusiveType.value) {
-            callback()
-            return
-          }
-          validateRequiredNumber(_rule, value, callback)
-        },
-        trigger: 'change'
-      }
-    ],
-    direct: [
-      {
-        validator: (_rule, value, callback) => {
-          if (isExclusiveType.value) {
-            callback()
-            return
-          }
-          validateRequiredNumber(_rule, value, callback)
-        },
-        trigger: 'change'
-      }
-    ]
+  const rules: FormRules = {
+    domainNames: [{ required: true, message: '请输入域名集合' }],
+    type: [{ required: true, message: '域名类型'}],
+    platformType: [{ required: true, message: '请选择平台类型',trigger: 'change' }],
+    direct: [{ required: true, message: '请输入到期天数',trigger: 'change' }],
+    // isSearch: [{ required: true, message: '请输入劫持类型', trigger: 'change' }],
+    // accountId: [{ required: true, message: '请选择企业账号', trigger: 'change' }]
+    // password: [{ required: true, message: '请输入密码' }],
   }
 
   const initializeForm = () => {

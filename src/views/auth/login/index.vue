@@ -182,10 +182,15 @@
       // 登录请求
       const { account, password } = formData
 
-      const { token, refreshToken } = await fetchLogin({
+      const res = await fetchLogin({
         account,
         password
       })
+
+      console.error(res)
+
+      const { token, refreshToken } = res.data
+
 
       // 验证token
       if (!token) {

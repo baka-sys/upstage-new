@@ -37,12 +37,12 @@
           <ElRadioButton :label="1">是</ElRadioButton>
         </ElRadioGroup>
       </ElFormItem>
-      <ElFormItem label="劫持类型" prop="isSearch">
+      <!-- <ElFormItem label="劫持类型" prop="isSearch">
         <ElRadioGroup v-model="formData.isSearch">
           <ElRadioButton :label="1">普通卡</ElRadioButton>
           <ElRadioButton :label="2">劫持卡</ElRadioButton>
         </ElRadioGroup>
-      </ElFormItem>
+      </ElFormItem> -->
       <ElFormItem label="引流类型" prop="qrcodeSwitch">
         <ElSelect v-model="formData.qrcodeSwitch">
           <ElOption label="全网" :value="0" />
@@ -128,8 +128,8 @@
     days: [{ required: true, message: '请输入到期天数' }],
     maxNumber: [{ required: true, message: '请输入限制人数' }],
     testCard: [{ required: true, message: '请输入是否生成测试卡' }],
-    isSearch: [{ required: true, message: '请输入劫持类型', trigger: 'change' }],
-    accountId: [{ required: true, message: '请选择企业账号', trigger: 'change' }]
+    // isSearch: [{ required: true, message: '请输入劫持类型', trigger: 'change' }],
+    // accountId: [{ required: true, message: '请选择企业账号', trigger: 'change' }]
     // password: [{ required: true, message: '请输入密码' }],
   }
 

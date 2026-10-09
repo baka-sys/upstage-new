@@ -152,7 +152,7 @@
           formatter: (row) => {
             // TODO: 后端确认 status = 0 的业务文案是否为“开启”。
             if (row.status === 0) return h(ElTag, { type: 'success' }, () => '开启')
-            if (row.status === 1) return h(ElTag, { type: 'danger' }, () => '异常')
+            if (row.status === 1) return h(ElTag, { type: 'danger' }, () => '关闭')
             return '--'
           }
         },
@@ -356,9 +356,14 @@
     // TODO: 接入单条编辑功能及对应接口。
   }
 
-  const handleDelete = (row: CodeListItem) => {
-    void row
-    // TODO: 接入单条删除功能及对应接口。
+  const handleDelete = async (row: CodeListItem) => {
+    var reqData = { id: row.id }
+    var res:any = await deleteCodeBatch(reqData)
+    if (res.code == 200) {
+      ElMessage.success("删除成功")
+    } else {
+      ElMessage.error("删除失败")
+    }
   }
 </script>
 
