@@ -4,6 +4,9 @@
     title="批量录入"
     width="560px"
     align-center
+    :close-on-click-modal="!submitting"
+    :close-on-press-escape="!submitting"
+    :show-close="!submitting"
     destroy-on-close
     @closed="resetForm"
   >
@@ -13,7 +16,7 @@
           v-model="formData.domainNames"
           type="textarea"
           :rows="7"
-          placeholder="请输入域名，多个域名可换行或逗号分隔"
+          placeholder="请输入完整地址（如 https://example.com），多个地址可换行或逗号分隔"
         />
       </ElFormItem>
 
@@ -21,6 +24,7 @@
         <ElRadioGroup v-model="formData.type">
           <ElRadio :value="0">公共域名</ElRadio>
           <ElRadio :value="1">专属域名</ElRadio>
+          <ElRadio :value="2">备用域名</ElRadio>
         </ElRadioGroup>
       </ElFormItem>
 
@@ -37,9 +41,9 @@
 
       <ElFormItem v-if="!isExclusiveType" label="域名类型" prop="direct">
         <ElSelect v-model="formData.direct" class="full-width" placeholder="请选择域名类型">
-          <ElOption label="口子域名":value="0"/>
-          <ElOption label="直连域名":value="1"/>
-          <ElOption label="备案域名":value="2"/>
+          <ElOption label="口子域名" :value="0" />
+          <ElOption label="直连域名" :value="1" />
+          <ElOption label="备案域名" :value="2" />
         </ElSelect>
       </ElFormItem>
     </ElForm>
@@ -72,7 +76,7 @@
     domainNames: string
     type: Api.CodeManage.BatchAddCodeType
     platformType?: number
-    direct: 0 | 1
+    direct: Api.CodeManage.DirectType
   }
 
   const props = defineProps<Props>()
@@ -108,8 +112,24 @@
     value: string,
     callback: (error?: Error) => void
   ) => {
-    if (!normalizeDomainNames(value || '')) {
+    const domains = normalizeDomainNames(value || '')
+      .split(',')
+      .filter(Boolean)
+    if (domains.length === 0) {
       callback(new Error('请至少输入一个有效域名'))
+      return
+    }
+    if (new Set(domains).size !== domains.length) {
+      callback(new Error('请勿重复输入相同域名'))
+      return
+    }
+    try {
+      domains.forEach((domain) => {
+        const url = new URL(domain)
+        if (!['http:', 'https:'].includes(url.protocol)) throw new Error('invalid protocol')
+      })
+    } catch {
+      callback(new Error('请输入以 http:// 或 https:// 开头的完整地址'))
       return
     }
     callback()
@@ -127,15 +147,16 @@
     callback()
   }
 
-  const rules: FormRules = {
-    domainNames: [{ required: true, message: '请输入域名集合' }],
-    type: [{ required: true, message: '域名类型'}],
-    platformType: [{ required: true, message: '请选择平台类型',trigger: 'change' }],
-    direct: [{ required: true, message: '请输入到期天数',trigger: 'change' }],
-    // isSearch: [{ required: true, message: '请输入劫持类型', trigger: 'change' }],
-    // accountId: [{ required: true, message: '请选择企业账号', trigger: 'change' }]
-    // password: [{ required: true, message: '请输入密码' }],
-  }
+  const rules = computed<FormRules>(() => ({
+    domainNames: [{ required: true, validator: validateDomainNames, trigger: 'blur' }],
+    type: [{ required: true, validator: validateRequiredNumber, trigger: 'change' }],
+    ...(!isExclusiveType.value
+      ? {
+          platformType: [{ required: true, validator: validateRequiredNumber, trigger: 'change' }],
+          direct: [{ required: true, validator: validateRequiredNumber, trigger: 'change' }]
+        }
+      : {})
+  }))
 
   const initializeForm = () => {
     Object.assign(formData, {
@@ -176,7 +197,6 @@
 
       if (!isExclusiveType.value) {
         params.platformType = formData.platformType
-        // TODO: 后端确认 direct = 0/1 是否分别代表否/是。
         params.direct = formData.direct
       }
 

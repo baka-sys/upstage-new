@@ -503,7 +503,8 @@ declare namespace Api {
   /** 活码域名 */
   namespace CodeManage {
     type CodeType = 0 | 1 | 2
-    type BatchAddCodeType = 0 | 1
+    type BatchAddCodeType = CodeType
+    type DirectType = 0 | 1 | 2
 
     interface CodePageParams {
       type: CodeType
@@ -527,7 +528,8 @@ declare namespace Api {
       deleteTime?: string
       createTime?: string
       updateTime?: string
-      direct?: string
+      direct?: DirectType
+      isScan?: number
       carmineSet?: unknown
     }
 
@@ -537,7 +539,14 @@ declare namespace Api {
       domainNames: string
       type: BatchAddCodeType
       platformType?: number
-      direct?: 0 | 1
+      direct?: DirectType
+    }
+
+    interface UpdateCodeParams {
+      id: number
+      domainName: string
+      platformType?: number
+      direct?: DirectType
     }
 
     interface ResetCodeBatchParams {

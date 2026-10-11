@@ -61,3 +61,11 @@ export function updateCodeStatus(data: Api.CodeManage.UpdateCodeStatusParams) {
     data
   })
 }
+
+/** 修改活码域名；对应 upstage LiveCodeController#updateDomain。 */
+export function updateCode(data: Api.CodeManage.UpdateCodeParams) {
+  return request.put<void>({
+    url: '/code/update',
+    data
+  })
+}

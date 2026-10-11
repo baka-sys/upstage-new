@@ -4,6 +4,9 @@
     title="劫持默认设置"
     width="900px"
     align-center
+    :close-on-click-modal="!saving"
+    :close-on-press-escape="!saving"
+    :show-close="!saving"
     destroy-on-close
     @closed="handleClosed"
   >
@@ -27,31 +30,19 @@
           <ElButton type="primary" plain class="add-button" @click="addCarmine">
             <ElIcon><Plus /></ElIcon>
           </ElButton>
-          <VueDraggable
-            v-model="form.carmines"
-            target=".el-table__body-wrapper tbody"
-            handle=".drag-handle"
-            :animation="150"
-          >
-            <ElTable :data="form.carmines" border>
-              <ElTableColumn type="index" label="序号" width="70" align="center" />
-              <ElTableColumn label="排序" width="70" align="center">
-                <template #default>
-                  <ElIcon class="drag-handle"><Rank /></ElIcon>
-                </template>
-              </ElTableColumn>
-              <ElTableColumn label="卡密" min-width="280">
-                <template #default="{ row }">
-                  <ElInput v-model="row.carmine" placeholder="请输入卡密" clearable />
-                </template>
-              </ElTableColumn>
-              <ElTableColumn label="已劫持数量" width="190">
-                <template #default="{ row }">
-                  <ElInputNumber v-model="row.number" :min="0" :step="1" :precision="0" />
-                </template>
-              </ElTableColumn>
-            </ElTable>
-          </VueDraggable>
+
+          <ElTable :data="form.carmines" border>
+            <ElTableColumn type="index" label="序号" width="70" align="center" />
+
+            <ElTableColumn label="卡密" min-width="280">
+              <template #default="{ row }">
+                <ElInput v-model="row.carmine" placeholder="请输入卡密" clearable />
+              </template>
+            </ElTableColumn>
+            <ElTableColumn prop="number" label="绑定数量" width="190" />
+          </ElTable>
+
+          <p class="text-sm text-g-500">保存后绑定数量将归零。</p>
         </div>
       </ElFormItem>
 
@@ -75,9 +66,8 @@
 </template>
 
 <script setup lang="ts">
-  import { Plus, Rank } from '@element-plus/icons-vue'
+  import { Plus } from '@element-plus/icons-vue'
   import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
-  import { VueDraggable } from 'vue-draggable-plus'
   import { updateEntryRatioSetting } from '@/api/carmine'
 
   type NumberFieldKey =
@@ -235,6 +225,19 @@
     const valid = await formRef.value.validate().catch(() => false)
     if (!valid) return
 
+    const carmines = form.carmines.map((item) => ({
+      carmine: item.carmine.trim(),
+      number: 0
+    }))
+    if (carmines.some((item) => !item.carmine)) {
+      ElMessage.error('请填写劫持卡列表中的卡密')
+      return
+    }
+    if (new Set(carmines.map((item) => item.carmine)).size !== carmines.length) {
+      ElMessage.error('劫持卡列表中不能有重复卡密')
+      return
+    }
+
     saving.value = true
     try {
       await updateEntryRatioSetting({
@@ -247,7 +250,7 @@
         delayTime: form.delayTime!,
         hackTotalNumber: form.hackTotalNumber!,
         totalNumber: form.totalNumber!,
-        carmines: form.carmines
+        carmines
       })
       ElMessage.success('保存成功')
       visible.value = false
@@ -271,10 +274,5 @@
 
   .add-button {
     margin-bottom: 10px;
-  }
-
-  .drag-handle {
-    color: var(--el-text-color-secondary);
-    cursor: move;
   }
 </style>

@@ -80,10 +80,11 @@ export async function activePage(
 }
 
 /** 获取劫持默认配置 */
-export function getEntryRatioSetting() {
-  return request.get<Api.CarmineMange.EntryRatioSetting>({
+export async function getEntryRatioSetting(): Promise<Api.CarmineMange.EntryRatioSetting> {
+  const response = await request.get<{ data: Api.CarmineMange.EntryRatioSetting }>({
     url: '/entryRatioSetting/get'
   })
+  return response.data
 }
 
 /** 修改劫持默认配置 */
@@ -155,10 +156,10 @@ export async function fetchEntryRatioPage(
 
 /** 获取全部企业账户列表 */
 export async function fetchAccountList(): Promise<Api.CarmineMange.AccountListItem[]> {
-  const data = await request.get<Api.CarmineMange.AccountListItem[] | null>({
+  const response = await request.get<{ data: Api.CarmineMange.AccountListItem[] | null }>({
     url: '/account/list'
   })
-  return Array.isArray(data) ? data : []
+  return Array.isArray(response.data) ? response.data : []
 }
 
 /** 获取劫持管理企业账户下拉列表 */

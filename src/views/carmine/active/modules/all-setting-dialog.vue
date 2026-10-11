@@ -1,9 +1,12 @@
 <template>
   <ElDialog
     v-model="visible"
-    title="劫持默认设置"
+    title="全部配置"
     width="500px"
     align-center
+    :close-on-click-modal="!saving"
+    :close-on-press-escape="!saving"
+    :show-close="!saving"
     destroy-on-close
     @closed="handleClosed"
   >
@@ -145,7 +148,7 @@
     saving.value = true
     try {
       await batchUpdateAllEntryRatio({ ...form })
-      ElMessage.success('保存成功')
+      ElMessage.success('配置任务已提交，请稍后刷新查看结果')
       visible.value = false
       emit('success')
     } catch {
