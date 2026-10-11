@@ -14,9 +14,27 @@
             <ElButton :loading="defaultSettingLoading" @click="openDefaultSetting" v-ripple>
               默认设置
             </ElButton>
-            <ElButton v-ripple>同步配置</ElButton>
-            <ElButton v-ripple>全部开启</ElButton>
-            <ElButton v-ripple>全部暂停</ElButton>
+            <ElButton
+              :loading="batchActionLoading === 'sync'"
+              :disabled="batchActionLoading !== null"
+              @click="handleSynchronizeConfiguration"
+              v-ripple
+              >同步配置</ElButton
+            >
+            <ElButton
+              :loading="batchActionLoading === 'start'"
+              :disabled="batchActionLoading !== null"
+              @click="handleUpdateAllStatus(0)"
+              v-ripple
+              >全部开启</ElButton
+            >
+            <ElButton
+              :loading="batchActionLoading === 'stop'"
+              :disabled="batchActionLoading !== null"
+              @click="handleUpdateAllStatus(1)"
+              v-ripple
+              >全部暂停</ElButton
+            >
             <ElButton @click="allSettingVisible = true" v-ripple>全部配置</ElButton>
           </ElSpace>
         </template>
@@ -43,8 +61,13 @@
 </template>
 
 <script setup lang="ts">
-  import { ElButton, ElTag } from 'element-plus'
-  import { activePage, getEntryRatioSetting } from '@/api/carmine'
+  import { ElButton, ElMessage, ElTag } from 'element-plus'
+  import {
+    activePage,
+    getEntryRatioSetting,
+    synchronizeEntryRatioConfiguration,
+    updateAllEntryRatioStatus
+  } from '@/api/carmine'
   import { useTable } from '@/hooks/core/useTable'
   import ActiveSearch from './modules/active-search.vue'
   import DefaultSettingDialog from './modules/default-setting-dialog.vue'
@@ -64,6 +87,7 @@
   const defaultSettingLoading = ref(false)
   const defaultSettingData = ref<Api.CarmineMange.EntryRatioSetting>()
   const allSettingVisible = ref(false)
+  const batchActionLoading = ref<'sync' | 'start' | 'stop' | null>(null)
 
   const hasRatioSetting = (row: ActiveListItem) => Boolean(row.entryRatio || row.isSearch)
 
@@ -189,15 +213,49 @@
   }
 
   const openDefaultSetting = async () => {
+    if (defaultSettingLoading.value) return
     defaultSettingLoading.value = true
     try {
       const setting = await getEntryRatioSetting()
+      if (setting?.id === undefined || setting.id === null || setting.id === '') {
+        ElMessage.error('默认配置不存在或缺少 id，无法打开设置')
+        return
+      }
       defaultSettingData.value = setting
       defaultSettingVisible.value = true
     } catch {
       // 接口错误由统一请求封装提示，获取失败时不打开弹窗。
     } finally {
       defaultSettingLoading.value = false
+    }
+  }
+
+  const handleSynchronizeConfiguration = async () => {
+    if (batchActionLoading.value !== null) return
+    batchActionLoading.value = 'sync'
+    try {
+      await synchronizeEntryRatioConfiguration()
+      ElMessage.success('同步任务已提交，请稍后刷新查看结果')
+      await refreshData()
+    } catch {
+      // 请求失败由统一 HTTP 封装提示。
+    } finally {
+      batchActionLoading.value = null
+    }
+  }
+
+  const handleUpdateAllStatus = async (switchCode: 0 | 1) => {
+    if (batchActionLoading.value !== null) return
+    batchActionLoading.value = switchCode === 0 ? 'start' : 'stop'
+    try {
+      await updateAllEntryRatioStatus(switchCode)
+      const action = switchCode === 0 ? '开启' : '暂停'
+      ElMessage.success('全部' + action + '任务已提交，请稍后刷新查看结果')
+      await refreshData()
+    } catch {
+      // 请求失败由统一 HTTP 封装提示。
+    } finally {
+      batchActionLoading.value = null
     }
   }
 

@@ -80,10 +80,11 @@ export async function activePage(
 }
 
 /** 获取劫持默认配置 */
-export function getEntryRatioSetting() {
-  return request.get<Api.CarmineMange.EntryRatioSetting>({
+export async function getEntryRatioSetting(): Promise<Api.CarmineMange.EntryRatioSetting> {
+  const response = await request.get<{ data: Api.CarmineMange.EntryRatioSetting }>({
     url: '/entryRatioSetting/get'
   })
+  return response.data
 }
 
 /** 修改劫持默认配置 */

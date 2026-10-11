@@ -60,6 +60,12 @@
         @pagination:current-change="handleCurrentChange"
       />
 
+      <CodeEditDialog
+        v-model:visible="editDialogVisible"
+        :code-data="currentCode"
+        @success="handleEditSuccess"
+      />
+
       <CodeBatchAddDialog
         v-model:visible="batchAddDialogVisible"
         :initial-type="batchAddInitialType"
@@ -77,6 +83,7 @@
   import { CODE_TYPE_TABS, PLATFORM_TYPE_MAP } from './constants'
   import CodeBatchAddDialog from './modules/code-batch-add-dialog.vue'
   import CodeSearch from './modules/code-search.vue'
+  import CodeEditDialog from './modules/code-edit-dialog.vue'
 
   defineOptions({ name: 'CodeDomain' })
 
@@ -93,6 +100,8 @@
   const resetting = ref(false)
   const deleting = ref(false)
   const statusUpdatingId = ref<number>()
+  const editDialogVisible = ref(false)
+  const currentCode = ref<CodeListItem>()
   const batchAddDialogVisible = ref(false)
   const batchAddInitialType = ref<Api.CodeManage.BatchAddCodeType>(0)
 
@@ -231,12 +240,6 @@
   }
 
   const handleBatchImport = () => {
-    if (activeType.value === 2) {
-      // TODO: 后端确认备用活码/短域名是否支持 /code/addBatch。
-      ElMessage.warning('当前类型暂不支持批量录入')
-      return
-    }
-
     batchAddInitialType.value = activeType.value
     batchAddDialogVisible.value = true
   }
@@ -352,17 +355,26 @@
   }
 
   const handleEdit = (row: CodeListItem) => {
-    void row
-    // TODO: 接入单条编辑功能及对应接口。
+    if (row.id == null) {
+      ElMessage.warning('数据 id 为空，无法编辑')
+      return
+    }
+    currentCode.value = { ...row }
+    editDialogVisible.value = true
+  }
+
+  const handleEditSuccess = async () => {
+    currentCode.value = undefined
+    await refreshUpdate()
   }
 
   const handleDelete = async (row: CodeListItem) => {
-    var reqData = { id: row.id }
-    var res:any = await deleteCodeBatch(reqData)
+    const reqData = { id: row.id }
+    const res: any = await deleteCodeBatch(reqData)
     if (res.code == 200) {
-      ElMessage.success("删除成功")
+      ElMessage.success('删除成功')
     } else {
-      ElMessage.error("删除失败")
+      ElMessage.error('删除失败')
     }
   }
 </script>
