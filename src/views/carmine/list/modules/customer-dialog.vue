@@ -152,7 +152,9 @@
   async function loadAccountOptions() {
     accountLoading.value = true
     try {
-      accountOptions.value = await fetchAccountList()
+      let result = await fetchAccountList()
+      console.error(result)
+      accountOptions.value = result.data
     } finally {
       accountLoading.value = false
     }

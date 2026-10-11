@@ -562,7 +562,7 @@ export const useWorktabStore = defineStore(
   {
     persist: {
       key: 'worktab',
-      storage: localStorage
+      storage: sessionStorage
     }
   }
 )

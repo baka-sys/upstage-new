@@ -91,7 +91,7 @@ export const useTableStore = defineStore(
   {
     persist: {
       key: 'table',
-      storage: localStorage
+      storage: sessionStorage
     }
   }
 )

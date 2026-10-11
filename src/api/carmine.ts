@@ -137,12 +137,11 @@ interface EntryRatioPageResponse {
 
 /** 获取劫持管理分页列表 */
 export async function fetchEntryRatioPage(
-  params: Api.CarmineMange.EntryRatioPageParams
-): Promise<Api.CarmineMange.EntryRatioPageList> {
-  const response = await request.get<EntryRatioPageResponse>({
+  params: any
+): Promise<any> {
+  const response = await request.get<any>({
     url: '/entryRatio/page',
-    params,
-    returnFullResponse: true
+    params
   })
 
   return {
@@ -154,11 +153,10 @@ export async function fetchEntryRatioPage(
 }
 
 /** 获取全部企业账户列表 */
-export async function fetchAccountList(): Promise<Api.CarmineMange.AccountListItem[]> {
-  const data = await request.get<Api.CarmineMange.AccountListItem[] | null>({
-    url: '/account/list'
+export async function fetchAccountList(): Promise<any> {
+  return request.get<any>({
+    url: '/account/list',
   })
-  return Array.isArray(data) ? data : []
 }
 
 /** 获取劫持管理企业账户下拉列表 */
