@@ -57,6 +57,11 @@
       @success="handleDefaultSettingSuccess"
     />
     <AllSettingDialog v-model="allSettingVisible" @success="handleAllSettingSuccess" />
+    <RatioEditDialog
+      v-model="ratioEditVisible"
+      :ratio-data="currentRatio"
+      @success="handleRatioEditSuccess"
+    />
   </div>
 </template>
 
@@ -72,6 +77,7 @@
   import ActiveSearch from './modules/active-search.vue'
   import DefaultSettingDialog from './modules/default-setting-dialog.vue'
   import AllSettingDialog from './modules/all-setting-dialog.vue'
+  import RatioEditDialog from './modules/ratio-edit-dialog.vue'
 
   defineOptions({ name: 'CarmineActive' })
 
@@ -87,9 +93,11 @@
   const defaultSettingLoading = ref(false)
   const defaultSettingData = ref<Api.CarmineMange.EntryRatioSetting>()
   const allSettingVisible = ref(false)
+  const ratioEditVisible = ref(false)
+  const currentRatio = ref<Api.CarmineMange.EntryRatioItem>()
   const batchActionLoading = ref<'sync' | 'start' | 'stop' | null>(null)
 
-  const hasRatioSetting = (row: ActiveListItem) => Boolean(row.entryRatio || row.isSearch)
+  const hasRatioSetting = (row: ActiveListItem) => row.entryRatio?.id != null
 
   const {
     columns,
@@ -188,10 +196,14 @@
           label: '操作',
           width: 160,
           fixed: 'right',
-          formatter: () =>
+          formatter: (row) =>
             h('div', [
               h(ElButton, { link: true, type: 'primary' }, () => '打招呼'),
-              h(ElButton, { link: true, type: 'primary' }, () => '修改比例')
+              h(
+                ElButton,
+                { link: true, type: 'primary', onClick: () => openRatioEdit(row) },
+                () => '修改比例'
+              )
             ])
         }
       ]
@@ -210,6 +222,30 @@
 
   const handleSelectionChange = (selection: ActiveListItem[]) => {
     selectedRows.value = selection
+  }
+
+  const openRatioEdit = (row: ActiveListItem) => {
+    const ratio = row.entryRatio
+    if (!ratio || typeof ratio !== 'object' || ratio.id == null) {
+      ElMessage.warning('该卡密尚未配置劫持比例，请先同步配置后刷新列表')
+      return
+    }
+    const mainUserId = ratio.mainUserId ?? row.id
+    if (mainUserId == null) {
+      ElMessage.warning('主卡信息不完整，无法修改比例')
+      return
+    }
+    currentRatio.value = {
+      ...ratio,
+      mainUserId,
+      mainCarmine: ratio.mainCarmine || row.carmine || ''
+    }
+    ratioEditVisible.value = true
+  }
+
+  const handleRatioEditSuccess = async () => {
+    currentRatio.value = undefined
+    await refreshData()
   }
 
   const openDefaultSetting = async () => {

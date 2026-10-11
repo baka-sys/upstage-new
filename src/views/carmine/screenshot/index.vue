@@ -39,8 +39,7 @@
   })
 
   const hasRatioSetting = (row: ActiveListItem) => {
-    const hasEntryRatio =
-      row.entryRatio !== undefined && row.entryRatio !== null && row.entryRatio !== ''
+    const hasEntryRatio = row.entryRatio !== undefined && row.entryRatio !== null
     return hasEntryRatio || Boolean(row.isSearch)
   }
 

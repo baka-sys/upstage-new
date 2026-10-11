@@ -356,7 +356,7 @@ declare namespace Api {
       isSearch?: number | boolean
       sayHellos?: string
       dosage?: number
-      entryRatio?: number | string
+      entryRatio?: EntryRatioItem | null
     }
 
     /** 劫持比例配置（EntryRatioDTO / EntryRatioVO） */
