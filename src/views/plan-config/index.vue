@@ -30,7 +30,7 @@
 
 <script setup lang="ts">
   import { Plus } from '@element-plus/icons-vue'
-  import { ElButton, ElMessageBox, ElTag } from 'element-plus'
+  import { ElButton, ElMessageBox, ElSwitch, ElTag } from 'element-plus'
   import {
     deletePlanConfig,
     getPlanConfigPage,
@@ -57,7 +57,8 @@
   }
 
   const PLAN_TYPE_MAP: Record<Api.PlanConfigManage.PlanType, string> = {
-    0: '验证码'
+    0: '验证码',
+    1: '问答'
   }
 
   const {
@@ -105,33 +106,28 @@
           label: '默认方案',
           width: 120,
           formatter: (row) =>
-            row.defaultStatus === 0
-              ? h(ElTag, { type: 'warning' }, () => '默认')
-              : row.defaultStatus === 1
-                ? h(ElTag, { type: 'info' }, () => '非默认')
-                : '--'
+            h(ElSwitch, {
+              modelValue: row.defaultStatus,
+              activeValue: 0,
+              inactiveValue: 1,
+              activeText: '默认',
+              inactiveText: '非默认',
+              inlinePrompt: true,
+              loading: defaultUpdatingId.value === row.id,
+              disabled: defaultUpdatingId.value != null || ![0, 1].includes(row.defaultStatus),
+              onChange: (value) =>
+                handleSetDefault(row, value as Api.PlanConfigManage.PlanDefaultStatus)
+            })
         },
         {
           prop: 'operation',
           label: '操作',
-          width: 300,
+          width: 220,
           fixed: 'right',
           formatter: (row) => {
             const actionText = row.status === 0 ? '关闭' : row.status === 1 ? '开启' : '--'
-            const isDefault = row.defaultStatus === 0
 
             return h('div', { class: 'plan-config-operation' }, [
-              h(
-                ElButton,
-                {
-                  link: true,
-                  type: isDefault ? 'info' : 'warning',
-                  loading: defaultUpdatingId.value === row.id,
-                  disabled: isDefault || defaultUpdatingId.value != null,
-                  onClick: () => handleSetDefault(row)
-                },
-                () => (isDefault ? '已默认' : '设为默认')
-              ),
               h(
                 ElButton,
                 {
@@ -202,15 +198,22 @@
     }
   }
 
-  const handleSetDefault = async (row: PlanConfigListItem) => {
-    if (row.id == null || row.defaultStatus === 0 || defaultUpdatingId.value != null) return
+  const handleSetDefault = async (
+    row: PlanConfigListItem,
+    defaultStatus: Api.PlanConfigManage.PlanDefaultStatus
+  ) => {
+    if (row.id == null || row.defaultStatus === defaultStatus || defaultUpdatingId.value != null)
+      return
+    const isDefault = defaultStatus === 0
 
     try {
       await ElMessageBox.confirm(
-        `确定将方案“${row.title || '--'}”设置为默认方案吗？`,
-        '设置默认方案',
+        isDefault
+          ? `确定将方案“${row.title || '--'}”设为默认吗？同类型的其他默认方案将被取消。`
+          : `确定取消方案“${row.title || '--'}”的默认设置吗？`,
+        isDefault ? '设置默认方案' : '取消默认方案',
         {
-          confirmButtonText: '确定设置',
+          confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         }
@@ -221,8 +224,8 @@
 
     defaultUpdatingId.value = row.id
     try {
-      await setPlanConfigDefault({ id: row.id })
-      ElMessage.success('默认方案设置成功')
+      await setPlanConfigDefault({ id: row.id, defaultStatus })
+      ElMessage.success(isDefault ? '默认方案设置成功' : '默认方案已取消')
       await refreshUpdate()
     } catch {
       // 请求错误由统一 HTTP 拦截器提示，失败时保留当前默认状态。

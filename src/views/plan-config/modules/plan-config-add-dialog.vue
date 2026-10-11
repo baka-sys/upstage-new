@@ -5,9 +5,18 @@
     width="1100px"
     align-center
     destroy-on-close
+    :close-on-click-modal="!submitting && !uploading"
+    :close-on-press-escape="!submitting && !uploading"
+    :show-close="!submitting && !uploading"
     @closed="resetForm"
   >
-    <ElForm ref="formRef" :model="formData" :rules="rules" label-width="130px">
+    <ElForm
+      ref="formRef"
+      :model="formData"
+      :rules="rules"
+      :disabled="submitting || uploading"
+      label-width="130px"
+    >
       <ElFormItem label="方案标题" prop="title">
         <ElInput
           v-model="formData.title"
@@ -18,13 +27,41 @@
         />
       </ElFormItem>
 
-      <ElFormItem label="问答验证码背景" prop="img">
-        <!-- TODO: 等待后端提供通用图片上传接口后，替换为项目图片上传组件。 -->
-        <ElInput v-model="formData.img" placeholder="请输入背景图片地址" clearable />
-        <div class="form-tip">暂未提供图片上传接口，请先填写图片地址</div>
+      <ElFormItem label="方案类型" prop="type">
+        <ElRadioGroup v-model="formData.type">
+          <ElRadio :value="0">验证码</ElRadio>
+          <ElRadio :value="1">问答</ElRadio>
+        </ElRadioGroup>
       </ElFormItem>
 
-      <ElFormItem label="问答列表">
+      <ElFormItem v-if="formData.type === 0" label="验证码背景" prop="img">
+        <div class="background-upload">
+          <ElImage
+            v-if="formData.img"
+            class="background-preview"
+            :src="backgroundPreviewUrl"
+            :preview-src-list="[backgroundPreviewUrl]"
+            preview-teleported
+            fit="contain"
+            @error="handleBackgroundError"
+            @load="backgroundUnavailable = false"
+          />
+          <ElUpload
+            accept="image/png,image/jpeg,image/gif,image/bmp"
+            :show-file-list="false"
+            :before-upload="beforeBackgroundUpload"
+            :http-request="handleBackgroundUpload"
+            :disabled="submitting || uploading"
+          >
+            <ElButton type="primary" :loading="uploading" :disabled="submitting || uploading">
+              {{ formData.img ? '更换背景' : '上传背景' }}
+            </ElButton>
+          </ElUpload>
+          <div class="form-tip">支持 PNG、JPG、GIF、BMP，不超过 5MB</div>
+        </div>
+      </ElFormItem>
+
+      <ElFormItem v-if="formData.type === 1" label="问答列表" prop="questionList">
         <div class="question-list">
           <ElButton type="primary" plain :icon="Plus" class="add-row-button" @click="addQuestion">
             添加问答
@@ -103,6 +140,11 @@
                   </ElFormItem>
                 </template>
               </ElTableColumn>
+              <ElTableColumn label="操作" width="90" align="center">
+                <template #default="{ $index }">
+                  <ElButton type="danger" link @click="removeQuestion($index)">删除</ElButton>
+                </template>
+              </ElTableColumn>
             </ElTable>
           </VueDraggable>
         </div>
@@ -110,8 +152,13 @@
     </ElForm>
 
     <template #footer>
-      <ElButton :disabled="submitting" @click="dialogVisible = false">取消</ElButton>
-      <ElButton type="primary" :loading="submitting" :disabled="submitting" @click="handleSubmit">
+      <ElButton :disabled="submitting || uploading" @click="dialogVisible = false">取消</ElButton>
+      <ElButton
+        type="primary"
+        :loading="submitting"
+        :disabled="submitting || uploading"
+        @click="handleSubmit"
+      >
         {{ submitting ? '正在执行' : '保存' }}
       </ElButton>
     </template>
@@ -120,9 +167,21 @@
 
 <script setup lang="ts">
   import { Plus, Rank } from '@element-plus/icons-vue'
-  import type { FormInstance, FormItemRule, FormRules } from 'element-plus'
+  import type {
+    FormInstance,
+    FormItemRule,
+    FormRules,
+    UploadRawFile,
+    UploadRequestOptions
+  } from 'element-plus'
   import { VueDraggable } from 'vue-draggable-plus'
-  import { addPlanConfig, updatePlanConfig } from '@/api/plan-config'
+  import {
+    addPlanConfig,
+    updatePlanConfig,
+    uploadPlanConfigBackground,
+    resolvePlanBackgroundUrl,
+    getPlanBackgroundFallbackUrl
+  } from '@/api/plan-config'
 
   interface Props {
     visible: boolean
@@ -139,7 +198,6 @@
     questionTitle: string
     options: string
     answer: string
-    /** TODO: 待后端确认 content 中“不通过提示”的字段名是否为 failPrompt。 */
     failPrompt: string
   }
 
@@ -149,7 +207,6 @@
     content: string
     status: Api.PlanConfigManage.PlanStatus
     type: Api.PlanConfigManage.PlanType
-    defaultStatus: Api.PlanConfigManage.PlanDefaultStatus
     questionList: QuestionItem[]
   }
 
@@ -173,12 +230,15 @@
     content: '',
     status: 0,
     type: 0,
-    defaultStatus: 1,
     questionList: []
   })
 
   const formRef = ref<FormInstance>()
   const submitting = ref(false)
+  const uploading = ref(false)
+  const backgroundFallback = ref('')
+  const backgroundPreviewUrl = ref('')
+  const backgroundUnavailable = ref(false)
   const formData = reactive<PlanConfigAddForm>(createEmptyForm())
 
   const validateRequiredText =
@@ -196,7 +256,38 @@
       { validator: validateRequiredText('请输入方案标题'), trigger: 'blur' },
       { max: 50, message: '方案标题最多 50 字', trigger: 'blur' }
     ],
-    img: [{ validator: validateRequiredText('请输入背景图片地址'), trigger: 'blur' }],
+    type: [{ required: true, message: '请选择方案类型', trigger: 'change' }],
+    img: [
+      {
+        validator: (_rule, value, callback) => {
+          if (
+            formData.type === 0 &&
+            (typeof value !== 'string' || !value.trim() || backgroundUnavailable.value)
+          ) {
+            callback(
+              new Error(
+                backgroundUnavailable.value ? '图片无法访问，请重新上传背景' : '请上传验证码背景'
+              )
+            )
+            return
+          }
+          callback()
+        },
+        trigger: 'change'
+      }
+    ],
+    questionList: [
+      {
+        validator: (_rule, value, callback) => {
+          if (formData.type === 1 && (!Array.isArray(value) || value.length === 0)) {
+            callback(new Error('请至少添加一条问答'))
+            return
+          }
+          callback()
+        },
+        trigger: 'change'
+      }
+    ],
     status: [{ required: true, message: '请选择状态', trigger: 'change' }]
   }
 
@@ -233,18 +324,18 @@
     const planData = props.planData
     Object.assign(formData, createEmptyForm(), {
       title: isEdit.value ? planData?.title || '' : '',
-      img: isEdit.value ? planData?.img || '' : '',
+      img: isEdit.value && planData?.img ? resolvePlanBackgroundUrl(planData.img) : '',
       content: isEdit.value ? planData?.content || '' : '',
       status:
         isEdit.value && (planData?.status === 0 || planData?.status === 1) ? planData.status : 0,
-      type: 0,
-      defaultStatus:
-        isEdit.value && (planData?.defaultStatus === 0 || planData?.defaultStatus === 1)
-          ? planData.defaultStatus
-          : 1,
+      type: isEdit.value && planData?.type === 1 ? 1 : 0,
       questionList: isEdit.value ? parseQuestionList(planData?.content) : []
     })
     submitting.value = false
+    uploading.value = false
+    backgroundFallback.value = getPlanBackgroundFallbackUrl(formData.img)
+    backgroundPreviewUrl.value = formData.img
+    backgroundUnavailable.value = false
     nextTick(() => formRef.value?.clearValidate())
   }
 
@@ -269,6 +360,102 @@
     })
   }
 
+  const removeQuestion = (index: number) => {
+    formData.questionList.splice(index, 1)
+    nextTick(() => formRef.value?.clearValidate())
+  }
+
+  watch(
+    () => formData.type,
+    () => nextTick(() => formRef.value?.clearValidate())
+  )
+
+  const beforeBackgroundUpload = (file: UploadRawFile) => {
+    if (!['image/png', 'image/jpeg', 'image/gif', 'image/bmp'].includes(file.type)) {
+      ElMessage.error('仅支持 PNG、JPG、GIF、BMP 图片')
+      return false
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      ElMessage.error('图片大小不能超过 5MB')
+      return false
+    }
+    return true
+  }
+
+  const canLoadBackground = (url: string): Promise<boolean> =>
+    new Promise((resolve) => {
+      const image = new Image()
+      const finish = (loaded: boolean) => {
+        clearTimeout(timer)
+        image.onload = null
+        image.onerror = null
+        if (!loaded) image.src = ''
+        resolve(loaded)
+      }
+      const timer = setTimeout(() => finish(false), 5000)
+      image.onload = () => finish(true)
+      image.onerror = () => finish(false)
+      image.src = url
+    })
+
+  const handleBackgroundError = async () => {
+    if (uploading.value) return
+    const originalUrl = backgroundPreviewUrl.value
+    const fallback = backgroundFallback.value || getPlanBackgroundFallbackUrl(formData.img)
+    backgroundUnavailable.value = true
+    if (!fallback || fallback === originalUrl) {
+      ElMessage.warning('图片无法访问，请重新上传背景')
+      return
+    }
+    uploading.value = true
+    try {
+      const loaded = await canLoadBackground(fallback)
+      if (backgroundPreviewUrl.value !== originalUrl) return
+      if (loaded) {
+        backgroundPreviewUrl.value = fallback
+        backgroundUnavailable.value = false
+        formRef.value?.clearValidate('img')
+        ElMessage.info('已自动切换为备用背景')
+      } else {
+        ElMessage.warning('图片和备用图片均无法访问，请重新上传背景')
+      }
+    } finally {
+      uploading.value = false
+    }
+  }
+
+  const handleBackgroundUpload = async (options: UploadRequestOptions) => {
+    if (submitting.value || uploading.value) return
+    uploading.value = true
+    try {
+      const result = await uploadPlanConfigBackground(options.file)
+      if (!result?.filePath) throw new Error('上传接口未返回图片地址')
+      let displayUrl = result.filePath
+      if (!(await canLoadBackground(displayUrl))) {
+        if (
+          !result.localFilePath ||
+          result.localFilePath === displayUrl ||
+          !(await canLoadBackground(result.localFilePath))
+        ) {
+          throw new Error('图片无法访问，请重新上传或检查图片服务')
+        }
+        displayUrl = result.localFilePath
+      }
+      formData.img = result.filePath
+      backgroundPreviewUrl.value = displayUrl
+      backgroundFallback.value = result.localFilePath || ''
+      backgroundUnavailable.value = false
+      formRef.value?.clearValidate('img')
+      options.onSuccess(result)
+      ElMessage.success('验证码背景上传成功')
+    } catch (error) {
+      options.onError(error as Parameters<UploadRequestOptions['onError']>[0])
+      ElMessage.error(error instanceof Error ? error.message : '背景上传失败')
+    } finally {
+      uploading.value = false
+    }
+  }
+
   const normalizeQuestionList = (): QuestionItem[] =>
     formData.questionList.map((item) => ({
       questionTitle: item.questionTitle.trim(),
@@ -278,24 +465,22 @@
     }))
 
   const handleSubmit = async () => {
-    if (!formRef.value || submitting.value) return
+    if (!formRef.value || submitting.value || uploading.value) return
 
     const valid = await formRef.value.validate().catch(() => false)
-    if (!valid || formData.status == null) return
+    if (!valid || formData.status == null || submitting.value || uploading.value) return
 
-    // TODO: 待后端确认问答列表是否至少需要一条，以及 options/answer 的最终数据格式。
-    const questionList = normalizeQuestionList()
-    formData.content = JSON.stringify(questionList)
+    const questionList = formData.type === 1 ? normalizeQuestionList() : []
+    formData.content = formData.type === 1 ? JSON.stringify(questionList) : ''
 
     submitting.value = true
     try {
       const params: Api.PlanConfigManage.AddPlanConfigParams = {
         title: formData.title.trim(),
-        img: formData.img.trim(),
+        img: formData.type === 0 ? formData.img.trim() : '',
         content: formData.content,
         status: formData.status,
-        type: formData.type,
-        defaultStatus: formData.defaultStatus
+        type: formData.type
       }
 
       if (isEdit.value) {
@@ -325,6 +510,20 @@
     font-size: 12px;
     line-height: 20px;
     color: var(--el-text-color-secondary);
+  }
+
+  .background-upload {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .background-preview {
+    width: 240px;
+    height: 140px;
+    border: 1px solid var(--el-border-color);
+    border-radius: 6px;
   }
 
   .question-list {

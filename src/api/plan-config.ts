@@ -65,7 +65,7 @@ export function updatePlanConfigStatus(params: Api.PlanConfigManage.UpdatePlanCo
   })
 }
 
-/** 设置默认方案；方案 id 通过 query 提交 */
+/** 设置或取消默认方案；同类型默认方案由后端在事务中切换。 */
 export function setPlanConfigDefault(params: Api.PlanConfigManage.SetPlanConfigDefaultParams) {
   return request.post<void>({
     url: '/planConfig/defaultStatus',
@@ -75,4 +75,52 @@ export function setPlanConfigDefault(params: Api.PlanConfigManage.SetPlanConfigD
     },
     data: {}
   })
+}
+
+/** 解析图片地址，保留后台代理路径，七牛图片优先使用HTTPS。 */
+export function resolvePlanBackgroundUrl(filePath: string) {
+  const configuredBase = import.meta.env.VITE_API_URL || '/'
+  const apiBase = new URL(configuredBase.replace(/\/+$/, '') + '/', window.location.origin)
+  const imageUrl =
+    /^https?:\/\//i.test(filePath) || filePath.startsWith('//')
+      ? new URL(filePath, window.location.origin)
+      : new URL(filePath.replace(/^\/+/, ''), apiBase)
+  if (imageUrl.hostname === 'pic.cqdragon.top') imageUrl.protocol = 'https:'
+  return imageUrl.href
+}
+
+/** 同名本地备用图片可从七牛方案地址恢复，无需新增数据库字段。 */
+export function getPlanBackgroundFallbackUrl(imageUrl: string) {
+  try {
+    const url = new URL(imageUrl, window.location.origin)
+    if (
+      url.hostname !== 'pic.cqdragon.top' ||
+      !/^\/[a-f0-9]{32}\.(png|jpg|jpeg|gif|bmp)$/i.test(url.pathname)
+    )
+      return ''
+    return resolvePlanBackgroundUrl('/plan-backgrounds' + url.pathname)
+  } catch {
+    return ''
+  }
+}
+
+/** 上传背景；浏览器确认主图片可访问后使用主图，否则使用本地备用图。 */
+export async function uploadPlanConfigBackground(file: File) {
+  const data = new FormData()
+  data.append('file', file)
+  const response = await request.post<{
+    code: number
+    data: { filePath: string; localFilePath?: string; fileName?: string }
+  }>({ url: '/other/upload', data, showErrorMessage: false })
+  const filePath = response.data?.filePath?.trim()
+  if (!filePath) throw new Error('上传接口未返回图片地址')
+  const imageUrl = resolvePlanBackgroundUrl(filePath)
+  const localFilePath = response.data.localFilePath?.trim()
+  return {
+    ...response.data,
+    filePath: imageUrl,
+    localFilePath: localFilePath
+      ? resolvePlanBackgroundUrl(localFilePath)
+      : getPlanBackgroundFallbackUrl(imageUrl)
+  }
 }

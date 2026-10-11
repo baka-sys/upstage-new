@@ -4,6 +4,9 @@
     :title="isEdit ? '编辑企业账号' : '新增企业账号'"
     width="680px"
     align-center
+    :close-on-click-modal="!submitting"
+    :close-on-press-escape="!submitting"
+    :show-close="!submitting"
     destroy-on-close
     class="account-dialog"
     @closed="resetForm"
@@ -15,7 +18,7 @@
       <div>
         <div class="intro-title">{{ isEdit ? '完善企业资料' : '创建新的企业账号' }}</div>
         <div class="intro-description">
-          {{ isEdit ? '修改企业名称和头像信息' : '填写企业基本资料并设置登录密码' }}
+          {{ isEdit ? '修改企业资料，保存额度时同步信用积分' : '填写企业基本资料并设置登录密码' }}
         </div>
       </div>
     </div>
@@ -101,6 +104,21 @@
               />
             </ElFormItem>
           </ElCol>
+          <ElCol :span="12">
+            <ElFormItem label="信用额度" prop="creditLimit">
+              <ElInputNumber
+                v-model="formData.creditLimit"
+                :min="0"
+                :step="1"
+                :disabled="submitting"
+                placeholder="请输入信用额度"
+                class="credit-limit-input"
+              />
+              <div class="section-tip">
+                {{ isEdit ? '保存时信用积分将同步设为当前额度' : '新增时信用积分按此额度初始化' }}
+              </div>
+            </ElFormItem>
+          </ElCol>
           <ElCol v-if="isEdit" :span="12">
             <ElFormItem label="账号状态">
               <ElTag :type="accountData?.status === 0 ? 'success' : 'info'">
@@ -172,6 +190,7 @@
     accountName: string
     account: string
     phoneNumber: string
+    creditLimit: number | undefined
     img: string
     password: string
     confirmPassword: string
@@ -193,6 +212,7 @@
     accountName: '',
     account: '',
     phoneNumber: '',
+    creditLimit: 0,
     img: '',
     password: '',
     confirmPassword: ''
@@ -211,7 +231,16 @@
     callback()
   }
 
+  const validateCreditLimit: FormItemRule['validator'] = (_rule, value, callback) => {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+      callback(new Error('请输入不小于 0 的有效信用额度'))
+      return
+    }
+    callback()
+  }
+
   const rules: FormRules<AccountForm> = {
+    creditLimit: [{ required: true, validator: validateCreditLimit, trigger: 'change' }],
     accountName: [{ required: true, message: '请输入企业名称', trigger: 'blur' }],
     account: [{ required: true, message: '请输入企业账号', trigger: 'blur' }],
     phoneNumber: [{ pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }],
@@ -227,7 +256,8 @@
       accountName: isEdit.value ? props.accountData?.accountName || '' : '',
       account: isEdit.value ? props.accountData?.account || '' : '',
       phoneNumber: isEdit.value ? String(props.accountData?.phoneNumber || '') : '',
-      img: isEdit.value ? props.accountData?.img || '' : ''
+      img: isEdit.value ? props.accountData?.img || '' : '',
+      creditLimit: isEdit.value ? (props.accountData?.creditLimit ?? 0) : 0
     })
     submitting.value = false
     uploading.value = false
@@ -276,7 +306,7 @@
     if (!formRef.value || submitting.value) return
 
     const valid = await formRef.value.validate().catch(() => false)
-    if (!valid) return
+    if (!valid || submitting.value) return
 
     submitting.value = true
     try {
@@ -287,11 +317,13 @@
         }
         await updateAccountInfo({
           id: props.accountData.id,
+          creditLimit: formData.creditLimit!,
           accountName: formData.accountName.trim(),
           img: formData.img.trim() || undefined
         })
       } else {
         await addAccount({
+          creditLimit: formData.creditLimit!,
           accountName: formData.accountName.trim(),
           account: formData.account.trim(),
           phoneNumber: formData.phoneNumber ? Number(formData.phoneNumber) : undefined,
@@ -314,6 +346,10 @@
 </script>
 
 <style scoped lang="scss">
+  .credit-limit-input {
+    width: 100%;
+  }
+
   .dialog-intro {
     display: flex;
     gap: 14px;

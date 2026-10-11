@@ -133,6 +133,7 @@ declare namespace Api {
       status: AccountStatus
       points?: number
       creditPoints?: number
+      creditLimit?: number
       hackRate?: number
       createTime?: string
       updateTime?: string
@@ -148,12 +149,14 @@ declare namespace Api {
       password: string
       confirmPassword: string
       phoneNumber?: number
+      creditLimit: number
       status: AccountStatus
     }
 
     interface UpdateAccountInfoParams {
       id: number | string
       accountName: string
+      creditLimit: number
       img?: string
     }
 
@@ -598,8 +601,8 @@ declare namespace Api {
   /** 问答方案设置 */
   namespace PlanConfigManage {
     type PlanStatus = 0 | 1
-    /** 当前后端仅定义 0：验证码。 */
-    type PlanType = 0
+    /** 0：验证码；1：问答。 */
+    type PlanType = 0 | 1
     /** 0：默认；1：非默认。 */
     type PlanDefaultStatus = 0 | 1
 
@@ -615,7 +618,8 @@ declare namespace Api {
       /** 0：开启；1：关闭。新增方案默认传 0。 */
       status: PlanStatus
       type: PlanType
-      defaultStatus: PlanDefaultStatus
+      /** 默认状态由后端按同类型是否已有默认决定，也可通过列表开关设置。 */
+      defaultStatus?: PlanDefaultStatus
     }
 
     interface UpdatePlanConfigParams extends AddPlanConfigParams {
@@ -634,6 +638,8 @@ declare namespace Api {
 
     interface SetPlanConfigDefaultParams {
       id: number
+      /** 0：设为默认；1：取消默认。 */
+      defaultStatus: PlanDefaultStatus
     }
 
     interface PlanConfigPageListItem {
@@ -645,7 +651,7 @@ declare namespace Api {
       content?: string
       /** 0：开启；1：关闭。 */
       status: PlanStatus | number
-      /** 当前后端仅定义 0：验证码。 */
+      /** 0：验证码；1：问答。 */
       type: PlanType | number
       /** 0：默认；1：非默认。 */
       defaultStatus: PlanDefaultStatus | number
