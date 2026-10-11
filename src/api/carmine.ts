@@ -138,9 +138,9 @@ interface EntryRatioPageResponse {
 
 /** 获取劫持管理分页列表 */
 export async function fetchEntryRatioPage(
-  params: any
-): Promise<any> {
-  const response = await request.get<any>({
+  params: Api.CarmineMange.EntryRatioPageParams
+): Promise<Api.CarmineMange.EntryRatioPageList> {
+  const response = await request.get<EntryRatioPageResponse>({
     url: '/entryRatio/page',
     params
   })
@@ -156,7 +156,7 @@ export async function fetchEntryRatioPage(
 /** 获取全部企业账户列表 */
 export async function fetchAccountList(): Promise<any> {
   return request.get<any>({
-    url: '/account/list',
+    url: '/account/list'
   })
 }
 

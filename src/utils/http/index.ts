@@ -17,6 +17,7 @@
 import axios, {
   AxiosRequestConfig,
   AxiosResponse,
+  type RawAxiosHeaders,
   InternalAxiosRequestConfig
 } from 'axios'
 import { useUserStore } from '@/store/modules/user'
@@ -41,6 +42,8 @@ interface ExtendedAxiosRequestConfig extends AxiosRequestConfig {
   showErrorMessage?: boolean
   showSuccessMessage?: boolean
   skipCodeCheck?: boolean
+  /** 兼容分页 API 的配置；当前请求封装默认返回完整业务响应体。 */
+  returnFullResponse?: boolean
 }
 
 const { VITE_API_URL, VITE_WITH_CREDENTIALS } = import.meta.env
@@ -54,8 +57,7 @@ const axiosInstance = axios.create({
   transformResponse: [
     // ✅ 修复 1：第二个参数是 headers，不是 response
     (data, headers) => {
-      const contentType =
-        (headers && (headers['content-type'] || headers['Content-Type'])) || ''
+      const contentType = (headers && (headers['content-type'] || headers['Content-Type'])) || ''
 
       if (typeof contentType === 'string' && contentType.includes('application/json')) {
         try {
@@ -110,10 +112,7 @@ axiosInstance.interceptors.response.use(
 
     // ✅ 修复 2：优先读业务码 code，兼容 message / msg
     const code = (data as any)?.code ?? status
-    const message =
-      (data as any)?.message ??
-      (data as any)?.msg ??
-      undefined
+    const message = (data as any)?.message ?? (data as any)?.msg ?? undefined
 
     // ✅ 修复 3：按业务码判断成功
     if (code === ApiStatus.success) {
@@ -141,10 +140,7 @@ function createHttpError(message: string, code: number) {
 
 /** 处理 401 错误（带防抖） */
 function handleUnauthorizedError(message?: string, requestToken?: string): never {
-  const error = createHttpError(
-    message || $t('httpMsg.unauthorized'),
-    ApiStatus.unauthorized
-  )
+  const error = createHttpError(message || $t('httpMsg.unauthorized'), ApiStatus.unauthorized)
 
   if (!isUnauthorizedErrorShown) {
     isUnauthorizedErrorShown = true
@@ -184,7 +180,9 @@ function logOut(requestToken?: string) {
 function getRequestAccessToken(config?: AxiosRequestConfig): string | undefined {
   if (!config?.headers) return undefined
 
-  const authorization = axios.AxiosHeaders.from(config.headers).get('Authorization')
+  const authorization = axios.AxiosHeaders.from(config.headers as RawAxiosHeaders).get(
+    'Authorization'
+  )
   if (typeof authorization !== 'string') return undefined
 
   return authorization.replace(/^Bearer\s+/i, '')
@@ -233,8 +231,7 @@ async function request<T = any>(config: ExtendedAxiosRequestConfig): Promise<T> 
     }
 
     // ✅ 兼容 message / msg
-    const successMessage =
-      (res.data as any)?.message ?? (res.data as any)?.msg
+    const successMessage = (res.data as any)?.message ?? (res.data as any)?.msg
 
     if (config.showSuccessMessage && successMessage) {
       showSuccess(successMessage)
