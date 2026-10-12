@@ -122,12 +122,6 @@
         { type: 'selection', width: 50 },
         { prop: 'carmine', label: '卡密', minWidth: 180, showOverflowTooltip: true },
         { prop: 'name', label: '名称', minWidth: 120, showOverflowTooltip: true },
-        {
-          prop: 'accountName',
-          label: '企业账号名称',
-          minWidth: 150,
-          showOverflowTooltip: true
-        },
         { prop: 'maxNumber', label: '限制人数', width: 100 },
         {
           prop: 'number',
@@ -142,14 +136,11 @@
           formatter: (row) => row.todayTotal ?? row.number ?? '--'
         },
         {
-          prop: 'shellType',
-          label: '卡类型',
-          width: 120,
-          formatter: (row) => {
-            if (row.shellType === 0) return '普通卡'
-            if (row.shellType === 1) return '劫持卡/S型卡'
-            return '--'
-          }
+          prop: 'accountName',
+          label: '企业账号名称',
+          minWidth: 150,
+          showOverflowTooltip: true,
+          formatter: (row) => row.accountName?.trim() || (row.accountId == null ? '普通卡' : '--')
         },
         {
           prop: 'entryRatio',
@@ -161,18 +152,18 @@
             )
         },
         {
-          prop: 'secondaryCard1',
+          prop: 'entryRatio.subCarmine',
           label: '副卡1',
-          width: 100,
-          // TODO: 后端需确认副卡1对应的接口字段。
-          formatter: () => '--'
+          minWidth: 180,
+          showOverflowTooltip: true,
+          formatter: (row) => row.entryRatio?.subCarmine?.trim() || '--'
         },
         {
-          prop: 'secondaryCard2',
+          prop: 'entryRatio.subCarmineTwo',
           label: '副卡2',
-          width: 100,
-          // TODO: 后端需确认副卡2对应的接口字段。
-          formatter: () => '--'
+          minWidth: 180,
+          showOverflowTooltip: true,
+          formatter: (row) => row.entryRatio?.subCarmineTwo?.trim() || '--'
         },
         {
           prop: 'status',

@@ -16,7 +16,7 @@
       </ElFormItem>
       <ElDivider content-position="left">副卡1比例</ElDivider>
       <ElFormItem label="副卡1" prop="subCarmine">
-        <ElInput v-model.trim="form.subCarmine" placeholder="请输入副卡1卡密" />
+        <ElInput :model-value="form.subCarmine" disabled placeholder="暂无副卡1卡密" />
       </ElFormItem>
       <ElRow :gutter="16">
         <ElCol :span="12"
@@ -187,7 +187,7 @@
       ElMessage.error('比例记录或主卡信息不完整，无法保存')
       return
     }
-    const subCarmine = form.subCarmine.trim()
+    const subCarmine = (props.ratioData?.subCarmine || '').trim()
     const subCarmineTwo = form.subCarmineTwo.trim()
     if (!subCarmine && !subCarmineTwo) {
       ElMessage.error('请至少填写一张副卡卡密')
