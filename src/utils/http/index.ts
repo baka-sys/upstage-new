@@ -17,7 +17,7 @@
 import axios, {
   AxiosRequestConfig,
   AxiosResponse,
-  type RawAxiosHeaders,
+  type AxiosHeaders,
   InternalAxiosRequestConfig
 } from 'axios'
 import { useUserStore } from '@/store/modules/user'

@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-  import { accountList } from '@/api/record'
+  import { fetchAccountList } from '@/api/carmine'
 
   type SearchForm = Pick<
     Api.RecordManage.RecordPageParams,
@@ -103,11 +103,13 @@
   const loadAccountOptions = async () => {
     accountLoading.value = true
     try {
-      const accounts = await accountList()
-      accountOptions.value = accounts.map((account) => ({
-        label: account.accountName,
-        value: account.id
-      }))
+      let result = await fetchAccountList()
+      let optionsData:any = []
+      result.data.forEach((element:any) => {
+        let optionObj = { label: element.accountName, value: element.id }
+        optionsData.push(optionObj)
+      })
+      accountOptions.value = optionsData
     } finally {
       accountLoading.value = false
     }

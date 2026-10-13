@@ -12,6 +12,8 @@
 </template>
 
 <script setup lang="ts">
+import { fetchAccountList } from '@/api/carmine';
+
   type SearchForm = Pick<Api.CarmineMange.ActivePageParams, 'carmine' | 'keywords'>
 
   interface Props {
@@ -43,6 +45,15 @@
       clearable: true
     },
     {
+      label: '企业',
+      key: 'accountId',
+      type: 'select',
+      props: {
+        placeholder: '请选择企业',
+        options: accountOptions.value
+      }
+    },
+    {
       label: '打招呼关键词',
       key: 'keywords',
       type: 'input',
@@ -55,4 +66,26 @@
     await searchBarRef.value.validate()
     emit('search', params)
   }
+
+  const accountLoading = ref(false)
+  const accountOptions = ref([])
+  async function loadAccountOptions() {
+    accountLoading.value = true
+    try {
+      let result = await fetchAccountList()
+      let optionsData:any = []
+      result.data.forEach((element:any) => {
+        let optionObj = { label: element.accountName, value: element.id }
+        optionsData.push(optionObj)
+      })
+      accountOptions.value = optionsData
+    } finally {
+      accountLoading.value = false
+    }
+  }
+
+  onMounted(()=>{
+    // 初始化企业数据
+    loadAccountOptions()
+  })
 </script>

@@ -14,13 +14,13 @@
             <ElButton :loading="defaultSettingLoading" @click="openDefaultSetting" v-ripple>
               默认设置
             </ElButton>
-            <ElButton
+            <!-- <ElButton
               :loading="batchActionLoading === 'sync'"
               @click="handleSynchronizeConfiguration"
               v-ripple
             >
               同步设置
-            </ElButton>
+            </ElButton> -->
             <ElButton
               :loading="batchActionLoading === 'start'"
               @click="handleUpdateAllStatus(0)"
@@ -180,23 +180,23 @@
     await refreshData()
   }
 
-  const handleSynchronizeConfiguration = async () => {
-    try {
-      await ElMessageBox.confirm('确定同步当前劫持配置吗？', '同步设置', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      })
-      batchActionLoading.value = 'sync'
-      await synchronizeEntryRatioConfiguration()
-      ElMessage.success('同步任务已提交')
-      await refreshData()
-    } catch {
-      // 取消操作或接口错误时保持当前页面状态。
-    } finally {
-      batchActionLoading.value = null
-    }
-  }
+  // const handleSynchronizeConfiguration = async () => {
+  //   try {
+  //     await ElMessageBox.confirm('确定同步当前劫持配置吗？', '同步设置', {
+  //       confirmButtonText: '确定',
+  //       cancelButtonText: '取消',
+  //       type: 'warning'
+  //     })
+  //     batchActionLoading.value = 'sync'
+  //     await synchronizeEntryRatioConfiguration()
+  //     ElMessage.success('同步任务已提交')
+  //     await refreshData()
+  //   } catch {
+  //     // 取消操作或接口错误时保持当前页面状态。
+  //   } finally {
+  //     batchActionLoading.value = null
+  //   }
+  // }
 
   const handleUpdateAllStatus = async (switchCode: 0 | 1) => {
     const action = switchCode === 0 ? '开启' : '暂停'

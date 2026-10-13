@@ -121,8 +121,8 @@
   }
 
   const loading = ref(false)
-  const userCount = ref<Api.Dashboard.UserCount | null>(null)
-  const hackCount = ref<Api.Dashboard.HackCount | null>(null)
+  const userCount = ref<any>(null)
+  const hackCount = ref<any>(null)
 
   const toNumber = (value: number | null | undefined) => value ?? 0
 
@@ -256,9 +256,9 @@
   const loadStatistics = async () => {
     loading.value = true
     try {
-      const [userData, hackData] = await Promise.all([fetchUserCount(), fetchHackCount()])
-      userCount.value = userData
-      hackCount.value = hackData
+      const [userData, hackData]:any = await Promise.all([fetchUserCount(), fetchHackCount()])
+      userCount.value = userData.data
+      hackCount.value = hackData.data
     } finally {
       loading.value = false
     }
