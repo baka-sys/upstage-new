@@ -56,9 +56,9 @@
     1: { label: '关闭', tagType: 'info' }
   }
 
-  const PLAN_TYPE_MAP: Record<Api.PlanConfigManage.PlanType, string> = {
+  const PLAN_TYPE_MAP: any = {
     0: '验证码',
-    1: '问答'
+    2: '问答'
   }
 
   const {
@@ -235,6 +235,7 @@
   }
 
   const handleEdit = (row: PlanConfigListItem) => {
+    console.error(row)
     editingPlan.value = row
     editDialogVisible.value = true
   }

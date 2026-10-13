@@ -54,6 +54,19 @@ export function freezeCarmines(params: Api.CarmineMange.FreezeCarmineParams) {
   })
 }
 
+/**
+ * 修改卡密状态
+ * @param params 
+ * @returns 
+ */
+export function handleUpdateStatusApi(params:any){
+  return request.post<any>({
+    url: '/user/switch',
+    params,
+    data: {}
+  })
+}
+
 interface ActivePageResponse {
   code: number
   msg?: string
@@ -88,7 +101,7 @@ export async function getEntryRatioSetting(): Promise<Api.CarmineMange.EntryRati
 }
 
 /** 修改劫持默认配置 */
-export function updateEntryRatioSetting(params: Api.CarmineMange.UpdateEntryRatioSettingParams) {
+export function updateEntryRatioSetting(params: any) {
   return request.post<void>({
     url: '/entryRatioSetting/update',
     data: params
@@ -112,19 +125,22 @@ export function updateEntryRatio(params: Api.CarmineMange.SaveEntryRatioParams) 
 }
 
 /** 全部开启或暂停劫持比例 */
-export function updateAllEntryRatioStatus(switchCode: 0 | 1) {
-  return request.post<void>({
+export function updateAllEntryRatioStatus(params:any) {
+  return request.post<any>({
     url: '/entryRatio/stopOrStart',
-    params: { switchCode },
-    data: {}
+    params: params,
+    data: {},
+    showErrorMessage: true
   })
 }
 
 /** 同步劫持配置 */
-export function synchronizeEntryRatioConfiguration() {
-  return request.post<void>({
+export function synchronizeEntryRatioConfiguration(params:any) {
+  return request.post<any>({
     url: '/entryRatio/synchronizationConfiguration',
-    data: {}
+    params: params,
+    data: {},
+    showErrorMessage: true
   })
 }
 

@@ -71,10 +71,10 @@
       },
       columnsFactory: () => [
         {
-          prop: 'accountId',
-          label: '企业账户ID',
+          prop: 'accountName',
+          label: '企业账户',
           minWidth: 130,
-          formatter: (row) => formatValue(row.accountId)
+          formatter: (row) => row.accountName
         },
         {
           prop: 'type',

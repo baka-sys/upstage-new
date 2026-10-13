@@ -24,7 +24,7 @@
     </div>
 
     <ElForm ref="formRef" :model="formData" :rules="rules" label-position="top">
-      <section class="form-section profile-section">
+      <!-- <section class="form-section profile-section">
         <div class="section-heading">
           <span class="section-title">企业头像</span>
           <span class="section-tip">支持 JPG、PNG 等图片格式，文件不超过 5MB</span>
@@ -70,7 +70,7 @@
             <span class="upload-tip">上传成功后将在保存账号时生效</span>
           </div>
         </div>
-      </section>
+      </section> -->
 
       <section class="form-section">
         <div class="section-heading">

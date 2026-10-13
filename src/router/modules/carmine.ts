@@ -31,16 +31,16 @@ export const carmineRoutes: AppRouteRecord = {
         fixedTab: false
       }
     },
-    {
-      path: 'hijhack',
-      name: 'Hijack',
-      component: '/carmine/hijack',
-      meta: {
-        title: 'menus.carmine.hijack',
-        keepAlive: false,
-        fixedTab: false
-      }
-    },
+    // {
+    //   path: 'hijhack',
+    //   name: 'Hijack',
+    //   component: '/carmine/hijack',
+    //   meta: {
+    //     title: 'menus.carmine.hijack',
+    //     keepAlive: false,
+    //     fixedTab: false
+    //   }
+    // },
     {
       path: 'screenshot',
       name: 'Screenshot',

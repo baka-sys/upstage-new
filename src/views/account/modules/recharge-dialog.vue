@@ -27,7 +27,7 @@
           :precision="2"
           :step="100"
           :controls="false"
-          placeholder="请输入充值金额"
+          placeholder="请输入充值积分"
           class="coin-input"
         />
         <div class="form-tip">实际到账积分将按照系统配置的充值比例计算</div>

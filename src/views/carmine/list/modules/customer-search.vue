@@ -12,6 +12,8 @@
 </template>
 
 <script setup lang="ts">
+import { fetchAccountList } from '@/api/carmine';
+
   interface Props {
     modelValue: Api.CarmineMange.CarmineSearchParams
     loading?: boolean
@@ -44,6 +46,15 @@
       type: 'input',
       placeholder: '用户名/卡密',
       clearable: true
+    },
+    {
+      label: '企业',
+      key: 'accountId',
+      type: 'select',
+      props: {
+        placeholder: '请选择企业',
+        options: accountOptions.value
+      }
     },
     {
       label: '卡密类型',
@@ -96,4 +107,25 @@
     emit('search', params)
     console.log('表单数据', params)
   }
+  const accountLoading = ref(false)
+  const accountOptions = ref([])
+  async function loadAccountOptions() {
+    accountLoading.value = true
+    try {
+      let result = await fetchAccountList()
+      let optionsData:any = []
+      result.data.forEach((element:any) => {
+        let optionObj = { label: element.accountName, value: element.id }
+        optionsData.push(optionObj)
+      })
+      accountOptions.value = optionsData
+    } finally {
+      accountLoading.value = false
+    }
+  }
+
+  onMounted(()=>{
+    // 初始化企业数据
+    loadAccountOptions()
+  })
 </script>

@@ -30,11 +30,11 @@
       <ElFormItem label="方案类型" prop="type">
         <ElRadioGroup v-model="formData.type">
           <ElRadio :value="0">验证码</ElRadio>
-          <ElRadio :value="1">问答</ElRadio>
+          <ElRadio :value="2">问答</ElRadio>
         </ElRadioGroup>
       </ElFormItem>
 
-      <ElFormItem v-if="formData.type === 0" label="验证码背景" prop="img">
+      <ElFormItem label="验证码背景" prop="img">
         <div class="background-upload">
           <ElImage
             v-if="formData.img"
@@ -43,8 +43,6 @@
             :preview-src-list="[backgroundPreviewUrl]"
             preview-teleported
             fit="contain"
-            @error="handleBackgroundError"
-            @load="backgroundUnavailable = false"
           />
           <ElUpload
             accept="image/png,image/jpeg,image/gif,image/bmp"
@@ -179,8 +177,7 @@
     addPlanConfig,
     updatePlanConfig,
     uploadPlanConfigBackground,
-    resolvePlanBackgroundUrl,
-    getPlanBackgroundFallbackUrl
+    getUploadUrl
   } from '@/api/plan-config'
 
   interface Props {
@@ -236,9 +233,8 @@
   const formRef = ref<FormInstance>()
   const submitting = ref(false)
   const uploading = ref(false)
-  const backgroundFallback = ref('')
+  const uploadUrl = ref('')
   const backgroundPreviewUrl = ref('')
-  const backgroundUnavailable = ref(false)
   const formData = reactive<PlanConfigAddForm>(createEmptyForm())
 
   const validateRequiredText =
@@ -260,15 +256,8 @@
     img: [
       {
         validator: (_rule, value, callback) => {
-          if (
-            formData.type === 0 &&
-            (typeof value !== 'string' || !value.trim() || backgroundUnavailable.value)
-          ) {
-            callback(
-              new Error(
-                backgroundUnavailable.value ? '图片无法访问，请重新上传背景' : '请上传验证码背景'
-              )
-            )
+          if (formData.type === 0 && (typeof value !== 'string' || !value.trim())) {
+            callback(new Error('请上传验证码背景'))
             return
           }
           callback()
@@ -315,27 +304,37 @@
         failPrompt: typeof item?.failPrompt === 'string' ? item.failPrompt : ''
       }))
     } catch {
-      // TODO: 如果后端 content 后续改为非 JSON 数组格式，需要同步调整解析逻辑。
       return []
     }
   }
 
-  const initializeForm = () => {
+  // 拼接图片地址：img 已是完整 URL 就直接用，否则拼 uploadUrl
+  const buildBackgroundUrl = (img?: string) => {
+    if (!img) return ''
+    if (/^(https?:)?\/\//i.test(img)) return img
+    return uploadUrl.value.replace(/\/+$/, '') + '/' + img.replace(/^\/+/, '')
+  }
+
+  const initializeForm = async () => {
     const planData = props.planData
     Object.assign(formData, createEmptyForm(), {
       title: isEdit.value ? planData?.title || '' : '',
-      img: isEdit.value && planData?.img ? resolvePlanBackgroundUrl(planData.img) : '',
+      img: isEdit.value ? planData?.img || '' : '',
       content: isEdit.value ? planData?.content || '' : '',
       status:
         isEdit.value && (planData?.status === 0 || planData?.status === 1) ? planData.status : 0,
       type: isEdit.value && planData?.type === 1 ? 1 : 0,
       questionList: isEdit.value ? parseQuestionList(planData?.content) : []
     })
+
+    const result = await getUploadUrl()
+    if (result?.code === 200) {
+      uploadUrl.value = result.data?.value ?? ''
+    }
+
     submitting.value = false
     uploading.value = false
-    backgroundFallback.value = getPlanBackgroundFallbackUrl(formData.img)
-    backgroundPreviewUrl.value = formData.img
-    backgroundUnavailable.value = false
+    backgroundPreviewUrl.value = uploadUrl.value + formData.img
     nextTick(() => formRef.value?.clearValidate())
   }
 
@@ -382,69 +381,15 @@
     return true
   }
 
-  const canLoadBackground = (url: string): Promise<boolean> =>
-    new Promise((resolve) => {
-      const image = new Image()
-      const finish = (loaded: boolean) => {
-        clearTimeout(timer)
-        image.onload = null
-        image.onerror = null
-        if (!loaded) image.src = ''
-        resolve(loaded)
-      }
-      const timer = setTimeout(() => finish(false), 5000)
-      image.onload = () => finish(true)
-      image.onerror = () => finish(false)
-      image.src = url
-    })
-
-  const handleBackgroundError = async () => {
-    if (uploading.value) return
-    const originalUrl = backgroundPreviewUrl.value
-    const fallback = backgroundFallback.value || getPlanBackgroundFallbackUrl(formData.img)
-    backgroundUnavailable.value = true
-    if (!fallback || fallback === originalUrl) {
-      ElMessage.warning('图片无法访问，请重新上传背景')
-      return
-    }
-    uploading.value = true
-    try {
-      const loaded = await canLoadBackground(fallback)
-      if (backgroundPreviewUrl.value !== originalUrl) return
-      if (loaded) {
-        backgroundPreviewUrl.value = fallback
-        backgroundUnavailable.value = false
-        formRef.value?.clearValidate('img')
-        ElMessage.info('已自动切换为备用背景')
-      } else {
-        ElMessage.warning('图片和备用图片均无法访问，请重新上传背景')
-      }
-    } finally {
-      uploading.value = false
-    }
-  }
-
   const handleBackgroundUpload = async (options: UploadRequestOptions) => {
     if (submitting.value || uploading.value) return
     uploading.value = true
     try {
-      const result = await uploadPlanConfigBackground(options.file)
+      const result = await uploadPlanConfigBackground(uploadUrl.value, options.file)
       if (!result?.filePath) throw new Error('上传接口未返回图片地址')
-      let displayUrl = result.filePath
-      if (!(await canLoadBackground(displayUrl))) {
-        if (
-          !result.localFilePath ||
-          result.localFilePath === displayUrl ||
-          !(await canLoadBackground(result.localFilePath))
-        ) {
-          throw new Error('图片无法访问，请重新上传或检查图片服务')
-        }
-        displayUrl = result.localFilePath
-      }
+
       formData.img = result.filePath
-      backgroundPreviewUrl.value = displayUrl
-      backgroundFallback.value = result.localFilePath || ''
-      backgroundUnavailable.value = false
+      backgroundPreviewUrl.value = buildBackgroundUrl(result.filePath)
       formRef.value?.clearValidate('img')
       options.onSuccess(result)
       ElMessage.success('验证码背景上传成功')
@@ -497,7 +442,7 @@
       dialogVisible.value = false
       emit('success')
     } catch {
-      // 请求错误由统一 HTTP 拦截器提示；失败时保留弹窗和用户输入。
+      // 请求错误由统一 HTTP 拦截器提示
     } finally {
       submitting.value = false
     }

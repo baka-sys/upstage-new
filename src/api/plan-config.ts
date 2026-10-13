@@ -105,13 +105,13 @@ export function getPlanBackgroundFallbackUrl(imageUrl: string) {
 }
 
 /** 上传背景；浏览器确认主图片可访问后使用主图，否则使用本地备用图。 */
-export async function uploadPlanConfigBackground(file: File) {
+export async function uploadPlanConfigBackground(uploadUrl: any, file: File) {
   const data = new FormData()
   data.append('file', file)
   const response = await request.post<{
     code: number
     data: { filePath: string; localFilePath?: string; fileName?: string }
-  }>({ url: '/other/upload', data, showErrorMessage: false })
+  }>({ url: uploadUrl + '/api/other/upload', data, showErrorMessage: false })
   const filePath = response.data?.filePath?.trim()
   if (!filePath) throw new Error('上传接口未返回图片地址')
   const imageUrl = resolvePlanBackgroundUrl(filePath)
@@ -123,4 +123,12 @@ export async function uploadPlanConfigBackground(file: File) {
       ? resolvePlanBackgroundUrl(localFilePath)
       : getPlanBackgroundFallbackUrl(imageUrl)
   }
+}
+
+// 获取上传地址
+export async function getUploadUrl() {
+  return request.get<any>({
+    url: '/config/one',
+    params: { systemCode: 'image_url' }
+  })
 }

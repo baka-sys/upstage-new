@@ -484,7 +484,8 @@ declare namespace Api {
 
     interface RecordListItem {
       id: number
-      accountId: number | string
+      accountId: number | string,
+      accountName: string,
       type: RecordType
       points: number
       beforeOperation: number

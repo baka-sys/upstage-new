@@ -74,9 +74,9 @@
             </div>
 
             <div class="flex-cb mt-2 text-sm">
-              <ElCheckbox v-model="formData.rememberPassword">{{
+              <!-- <ElCheckbox v-model="formData.rememberPassword">{{
                 $t('login.rememberPwd')
-              }}</ElCheckbox>
+              }}</ElCheckbox> -->
               <!-- <RouterLink class="text-theme" :to="{ name: 'ForgetPassword' }">{{
                 $t('login.forgetPwd')
               }}</RouterLink> -->

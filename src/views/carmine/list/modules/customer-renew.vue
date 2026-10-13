@@ -10,21 +10,23 @@
         />
       </ElFormItem>
       <ElFormItem label="充值天数" prop="days">
-        <ElInput
+        <ElInputNumber
           v-model="formData.days"
           type="number"
           :min="0"
           :max="10"
           placeholder="请输入有效天数"
+          style="width: 100%;"
         />
       </ElFormItem>
       <ElFormItem label="续费人数" prop="maxNumber">
-        <ElInput
+        <ElInputNumber
           v-model="formData.maxNumber"
           type="number"
           :min="0"
           :max="5000"
           placeholder="请输入最大进人数"
+          style="width: 100%;"
         />
       </ElFormItem>
     </ElForm>

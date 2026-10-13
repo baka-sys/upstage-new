@@ -1,22 +1,17 @@
 <template>
-  <ElDialog
-    v-model="visible"
-    title="全部配置"
-    width="500px"
-    align-center
-    :close-on-click-modal="!saving"
-    :close-on-press-escape="!saving"
-    :show-close="!saving"
-    destroy-on-close
-    @closed="handleClosed"
-  >
+  <ElDialog v-model="visible" title="更改配置" width="500px" align-center :close-on-click-modal="!saving"
+    :close-on-press-escape="!saving" :show-close="!saving" destroy-on-close @closed="handleClosed">
     <ElForm ref="formRef" :model="form" :rules="rules" label-width="120px">
-      <ElFormItem label="卡类型" prop="type">
-        <ElRadioGroup v-model="form.type">
-          <ElRadio :value="1">普通卡</ElRadio>
-          <ElRadio :value="2">劫持卡</ElRadio>
-        </ElRadioGroup>
-      </ElFormItem>
+      <ElForm ref="formRef" :model="form" :rules="rules" label-width="140px">
+        <ElFormItem label="企业账号" prop="accountId">
+          <ElSelect v-model="form.accountId" placeholder="请选择企业账号" :loading="accountLoading" filterable clearable
+            multiple>
+            <ElOption label="普通卡" :value="0" />
+            <ElOption v-for="account in accountOptions" :key="account.id" :label="`${account.accountName}`"
+              :value="account.id" />
+          </ElSelect>
+        </ElFormItem>
+      </ElForm>
 
       <ElFormItem label="比例开关" prop="switchCodeTwo">
         <ElRadioGroup v-model="form.switchCodeTwo">
@@ -26,23 +21,11 @@
       </ElFormItem>
 
       <ElFormItem label="主卡2人数" prop="mainRadioNumberTwo">
-        <ElInputNumber
-          v-model="form.mainRadioNumberTwo"
-          :min="0"
-          :step="1"
-          :precision="0"
-          class="number-input"
-        />
+        <ElInputNumber v-model="form.mainRadioNumberTwo" :min="0" :step="1" :precision="0" class="number-input" />
       </ElFormItem>
 
       <ElFormItem label="副卡2人数" prop="subRadioNumberTwo">
-        <ElInputNumber
-          v-model="form.subRadioNumberTwo"
-          :min="0"
-          :step="1"
-          :precision="0"
-          class="number-input"
-        />
+        <ElInputNumber v-model="form.subRadioNumberTwo" :min="0" :step="1" :precision="0" class="number-input" />
       </ElFormItem>
     </ElForm>
 
@@ -56,111 +39,136 @@
 </template>
 
 <script setup lang="ts">
-  import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
-  import { batchUpdateAllEntryRatio } from '@/api/carmine'
+import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
+import { batchUpdateAllEntryRatio, fetchAccountList } from '@/api/carmine'
 
-  type AllSettingForm = Api.CarmineMange.BatchUpdateAllEntryRatioParams
+type AllSettingForm = Api.CarmineMange.BatchUpdateAllEntryRatioParams
 
-  interface Props {
-    modelValue: boolean
+interface Props {
+  modelValue: boolean
+}
+
+interface Emits {
+  (e: 'update:modelValue', value: boolean): void
+  (e: 'success'): void
+}
+
+const props = defineProps<Props>()
+const emit = defineEmits<Emits>()
+const formRef = ref<FormInstance>()
+const saving = ref(false)
+
+const visible = computed({
+  get: () => props.modelValue,
+  set: (value) => emit('update:modelValue', value)
+})
+
+const createDefaultForm = (): any => ({
+  type: 1,
+  switchCodeTwo: 0,
+  mainRadioNumberTwo: 0,
+  subRadioNumberTwo: 0,
+  accountId: []
+})
+
+const form = reactive<any>(createDefaultForm())
+
+const validateNonNegativeInteger = (
+  _rule: unknown,
+  value: unknown,
+  callback: (error?: Error) => void
+) => {
+  if (value === undefined || value === null || value === '') {
+    callback(new Error('请输入人数'))
+    return
   }
-
-  interface Emits {
-    (e: 'update:modelValue', value: boolean): void
-    (e: 'success'): void
+  if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) {
+    callback(new Error('请输入不小于 0 的整数'))
+    return
   }
+  callback()
+}
 
-  const props = defineProps<Props>()
-  const emit = defineEmits<Emits>()
-  const formRef = ref<FormInstance>()
-  const saving = ref(false)
+const rules: FormRules<AllSettingForm> = {
+  type: [{ required: true, message: '请选择卡类型', trigger: 'change' }],
+  switchCodeTwo: [{ required: true, message: '请选择比例开关', trigger: 'change' }],
+  mainRadioNumberTwo: [
+    { required: true, validator: validateNonNegativeInteger, trigger: 'change' }
+  ],
+  subRadioNumberTwo: [
+    { required: true, validator: validateNonNegativeInteger, trigger: 'change' }
+  ]
+}
 
-  const visible = computed({
-    get: () => props.modelValue,
-    set: (value) => emit('update:modelValue', value)
-  })
+const resetForm = () => {
+  Object.assign(form, createDefaultForm())
+  formRef.value?.clearValidate()
+}
 
-  const createDefaultForm = (): AllSettingForm => ({
-    type: 1,
-    switchCodeTwo: 0,
-    mainRadioNumberTwo: 0,
-    subRadioNumberTwo: 0
-  })
-
-  const form = reactive<AllSettingForm>(createDefaultForm())
-
-  const validateNonNegativeInteger = (
-    _rule: unknown,
-    value: unknown,
-    callback: (error?: Error) => void
-  ) => {
-    if (value === undefined || value === null || value === '') {
-      callback(new Error('请输入人数'))
-      return
+watch(
+  () => props.modelValue,
+  (isVisible) => {
+    if (isVisible) {
+      resetForm()
+      nextTick(() => formRef.value?.clearValidate())
     }
-    if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) {
-      callback(new Error('请输入不小于 0 的整数'))
-      return
-    }
-    callback()
   }
+)
 
-  const rules: FormRules<AllSettingForm> = {
-    type: [{ required: true, message: '请选择卡类型', trigger: 'change' }],
-    switchCodeTwo: [{ required: true, message: '请选择比例开关', trigger: 'change' }],
-    mainRadioNumberTwo: [
-      { required: true, validator: validateNonNegativeInteger, trigger: 'change' }
-    ],
-    subRadioNumberTwo: [
-      { required: true, validator: validateNonNegativeInteger, trigger: 'change' }
-    ]
+const handleClose = () => {
+  if (saving.value) return
+  visible.value = false
+}
+
+const handleClosed = () => {
+  resetForm()
+}
+
+const handleSubmit = async () => {
+  if (!formRef.value || saving.value) return
+  const valid = await formRef.value.validate().catch(() => false)
+  if (!valid) return
+
+  saving.value = true
+
+  let params = {
+    accountIdSetString: form.accountId.join(","),
+    ...form
   }
-
-  const resetForm = () => {
-    Object.assign(form, createDefaultForm())
-    formRef.value?.clearValidate()
-  }
-
-  watch(
-    () => props.modelValue,
-    (isVisible) => {
-      if (isVisible) {
-        resetForm()
-        nextTick(() => formRef.value?.clearValidate())
-      }
-    }
-  )
-
-  const handleClose = () => {
-    if (saving.value) return
-    visible.value = false
-  }
-
-  const handleClosed = () => {
-    resetForm()
-  }
-
-  const handleSubmit = async () => {
-    if (!formRef.value || saving.value) return
-    const valid = await formRef.value.validate().catch(() => false)
-    if (!valid) return
-
-    saving.value = true
-    try {
-      await batchUpdateAllEntryRatio({ ...form })
+  try {
+    let result:any = await batchUpdateAllEntryRatio(params)
+    if (result.code === 200) {
       ElMessage.success('配置任务已提交，请稍后刷新查看结果')
       visible.value = false
       emit('success')
-    } catch {
-      // 接口错误由统一请求封装提示，保存失败时保留弹窗。
-    } finally {
-      saving.value = false
     }
+  } catch {
+    // 接口错误由统一请求封装提示，保存失败时保留弹窗。
+  } finally {
+    saving.value = false
   }
+}
+
+const accountLoading = ref(false)
+const accountOptions = ref<Api.CarmineMange.AccountListItem[]>([])
+
+async function loadAccountOptions() {
+  accountLoading.value = true
+  try {
+    let result = await fetchAccountList()
+    accountOptions.value = result.data
+  } finally {
+    accountLoading.value = false
+  }
+}
+
+onMounted(() => {
+  loadAccountOptions()
+})
 </script>
 
 <style scoped lang="scss">
-  .number-input {
-    width: 100%;
-  }
+.number-input {
+  width: 100%;
+}
 </style>

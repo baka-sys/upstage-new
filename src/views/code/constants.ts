@@ -10,10 +10,10 @@ export const PLATFORM_TYPE_MAP: Record<number, string> = {
   0: '全网码',
   1: '浏览器码',
   2: '微信码',
-  3: 'QQ码',
-  4: '抖音码',
-  5: '微博码',
-  6: '支付宝码'
+  // 3: 'QQ码',
+  // 4: '抖音码',
+  // 5: '微博码',
+  // 6: '支付宝码'
 }
 
 export const PLATFORM_TYPE_OPTIONS = Object.entries(PLATFORM_TYPE_MAP).map(([value, label]) => ({
