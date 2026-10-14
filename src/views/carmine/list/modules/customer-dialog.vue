@@ -105,30 +105,6 @@ const rules: FormRules = {
   // password: [{ required: true, message: '请输入密码' }],
 }
 
-/**
- * 监听对话框状态变化
- * 当对话框打开时清除验证状态
- */
-watch(
-  () => props.visible,
-  (visible) => {
-    if (visible) {
-      formData = {
-        lines: 0,
-        days: 0,
-        testCard: 0,
-        maxNumber: 0,
-        qrcodeSwitch: undefined,
-        isSearch: 1,
-        prefixString: '',
-        accountId: undefined
-      }
-      loadAccountOptions()
-      nextTick(() => formRef.value?.clearValidate())
-    }
-  },
-  { immediate: true }
-)
 
 async function loadAccountOptions() {
   accountLoading.value = true
@@ -168,4 +144,20 @@ const handleSubmit = async () => {
     submitting.value = false
   }
 }
+
+// 定义一个初始数据生成器
+const getInitFormData = (): Api.CarmineMange.GenerateCarmineParams => ({
+  lines: 0,
+  days: 0,
+  testCard: 0,
+  maxNumber: 0,
+  qrcodeSwitch: undefined,
+  isSearch: 1,
+  prefixString: '',
+  accountId: undefined
+})
+
+onMounted(()=>{
+  getInitFormData()
+})
 </script>

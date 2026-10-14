@@ -180,7 +180,7 @@ function logOut(requestToken?: string) {
 function getRequestAccessToken(config?: AxiosRequestConfig): string | undefined {
   if (!config?.headers) return undefined
 
-  const authorization = axios.AxiosHeaders.from(config.headers as RawAxiosHeaders).get(
+  const authorization = axios.AxiosHeaders.from(config.headers as any).get(
     'Authorization'
   )
   if (typeof authorization !== 'string') return undefined

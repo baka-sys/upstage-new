@@ -34,7 +34,7 @@
         </ElRadioGroup>
       </ElFormItem>
 
-      <ElFormItem label="验证码背景" prop="img">
+      <ElFormItem label="页面背景" prop="img">
         <div class="background-upload">
           <ElImage
             v-if="formData.img"
@@ -59,7 +59,7 @@
         </div>
       </ElFormItem>
 
-      <ElFormItem v-if="formData.type === 1" label="问答列表" prop="questionList">
+      <ElFormItem v-if="formData.type === 2" label="问答列表" prop="questionList">
         <div class="question-list">
           <ElButton type="primary" plain :icon="Plus" class="add-row-button" @click="addQuestion">
             添加问答
@@ -106,7 +106,7 @@
                       v-model="row.options"
                       type="textarea"
                       :rows="2"
-                      placeholder="请输入问答选项，如：选项A,选项B"
+                      placeholder="请输入问答选项，如：选项A+选项B"
                     />
                   </ElFormItem>
                 </template>
@@ -202,9 +202,9 @@
     title: string
     img: string
     content: string
-    status: Api.PlanConfigManage.PlanStatus
-    type: Api.PlanConfigManage.PlanType
-    questionList: QuestionItem[]
+    status: number
+    type: number
+    questionList: []
   }
 
   const props = withDefaults(defineProps<Props>(), {
@@ -235,7 +235,7 @@
   const uploading = ref(false)
   const uploadUrl = ref('')
   const backgroundPreviewUrl = ref('')
-  const formData = reactive<PlanConfigAddForm>(createEmptyForm())
+  const formData = reactive<any>(createEmptyForm())
 
   const validateRequiredText =
     (message: string): FormItemRule['validator'] =>
@@ -319,11 +319,11 @@
     const planData = props.planData
     Object.assign(formData, createEmptyForm(), {
       title: isEdit.value ? planData?.title || '' : '',
-      img: isEdit.value ? planData?.img || '' : '',
+      img: planData?.img,
       content: isEdit.value ? planData?.content || '' : '',
       status:
         isEdit.value && (planData?.status === 0 || planData?.status === 1) ? planData.status : 0,
-      type: isEdit.value && planData?.type === 1 ? 1 : 0,
+      type: planData?.type,
       questionList: isEdit.value ? parseQuestionList(planData?.content) : []
     })
 
@@ -389,7 +389,7 @@
       if (!result?.filePath) throw new Error('上传接口未返回图片地址')
 
       formData.img = result.filePath
-      backgroundPreviewUrl.value = buildBackgroundUrl(result.filePath)
+      backgroundPreviewUrl.value = uploadUrl.value + formData.img
       formRef.value?.clearValidate('img')
       options.onSuccess(result)
       ElMessage.success('验证码背景上传成功')
@@ -401,8 +401,8 @@
     }
   }
 
-  const normalizeQuestionList = (): QuestionItem[] =>
-    formData.questionList.map((item) => ({
+  const normalizeQuestionList = (): any =>
+    formData.questionList.map((item:any) => ({
       questionTitle: item.questionTitle.trim(),
       options: item.options.trim(),
       answer: item.answer.trim(),
@@ -415,14 +415,14 @@
     const valid = await formRef.value.validate().catch(() => false)
     if (!valid || formData.status == null || submitting.value || uploading.value) return
 
-    const questionList = formData.type === 1 ? normalizeQuestionList() : []
-    formData.content = formData.type === 1 ? JSON.stringify(questionList) : ''
+    const questionList = formData.type === 2 ? normalizeQuestionList() : []
+    formData.content = formData.type === 2 ? JSON.stringify(questionList) : ''
 
     submitting.value = true
     try {
       const params: Api.PlanConfigManage.AddPlanConfigParams = {
         title: formData.title.trim(),
-        img: formData.type === 0 ? formData.img.trim() : '',
+        img: formData.img.trim(),
         content: formData.content,
         status: formData.status,
         type: formData.type
