@@ -111,17 +111,13 @@ export async function uploadPlanConfigBackground(uploadUrl: any, file: File) {
   const response = await request.post<{
     code: number
     data: { filePath: string; localFilePath?: string; fileName?: string }
-  }>({ url: uploadUrl + '/api/other/upload', data, showErrorMessage: false })
+  }>({ url: uploadUrl + '/api/other/uploadImg', data, showErrorMessage: false })
   const filePath = response.data?.filePath?.trim()
   if (!filePath) throw new Error('上传接口未返回图片地址')
-  const imageUrl = resolvePlanBackgroundUrl(filePath)
-  const localFilePath = response.data.localFilePath?.trim()
+  const imageUrl = response.data.filePath
   return {
     ...response.data,
-    filePath: imageUrl,
-    localFilePath: localFilePath
-      ? resolvePlanBackgroundUrl(localFilePath)
-      : getPlanBackgroundFallbackUrl(imageUrl)
+    filePath: imageUrl
   }
 }
 
