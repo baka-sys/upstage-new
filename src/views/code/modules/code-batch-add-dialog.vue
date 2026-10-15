@@ -46,6 +46,13 @@
           <ElOption label="备案域名" :value="2" />
         </ElSelect>
       </ElFormItem>
+
+      <ElFormItem v-if="formData.type === 0" label="是否支持扫码" prop="isScan">
+        <ElRadioGroup v-model="formData.isScan">
+          <ElRadio :value="0">支持</ElRadio>
+          <ElRadio :value="1">不支持</ElRadio>
+        </ElRadioGroup>
+      </ElFormItem>
     </ElForm>
 
     <template #footer>
@@ -77,6 +84,7 @@
     type: Api.CodeManage.BatchAddCodeType
     platformType?: number
     direct: Api.CodeManage.DirectType
+    isScan: 0 | 1
   }
 
   const props = defineProps<Props>()
@@ -94,7 +102,8 @@
     domainNames: '',
     type: 0,
     platformType: undefined,
-    direct: 0
+    direct: 0,
+    isScan: 0
   })
 
   /** 将换行、中英文逗号输入统一清洗为接口要求的英文逗号分隔字符串。 */
@@ -150,6 +159,9 @@
   const rules = computed<FormRules>(() => ({
     domainNames: [{ required: true, validator: validateDomainNames, trigger: 'blur' }],
     type: [{ required: true, validator: validateRequiredNumber, trigger: 'change' }],
+    ...(formData.type === 0
+      ? { isScan: [{ required: true, validator: validateRequiredNumber, trigger: 'change' }] }
+      : {}),
     ...(!isExclusiveType.value
       ? {
           platformType: [{ required: true, validator: validateRequiredNumber, trigger: 'change' }],
@@ -163,7 +175,8 @@
       domainNames: '',
       type: props.initialType,
       platformType: undefined,
-      direct: 0
+      direct: 0,
+      isScan: 0
     })
     submitting.value = false
     nextTick(() => formRef.value?.clearValidate())
@@ -194,6 +207,8 @@
         domainNames,
         type: formData.type
       }
+
+      if (formData.type === 0) params.isScan = formData.isScan
 
       if (!isExclusiveType.value) {
         params.platformType = formData.platformType
