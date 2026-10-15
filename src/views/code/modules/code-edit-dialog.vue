@@ -38,6 +38,12 @@
           <ElOption label="备案域名" :value="2" />
         </ElSelect>
       </ElFormItem>
+      <ElFormItem label="是否支持扫码" prop="isScan">
+        <ElRadioGroup v-model="formData.isScan">
+          <ElRadio :value="0">支持</ElRadio>
+          <ElRadio :value="1">不支持</ElRadio>
+        </ElRadioGroup>
+      </ElFormItem>
     </ElForm>
     <template #footer>
       <ElButton :disabled="saving" @click="dialogVisible = false">取消</ElButton>
@@ -67,7 +73,8 @@
   const formData = reactive({
     domainName: '',
     platformType: undefined as number | undefined,
-    direct: undefined as Api.CodeManage.DirectType | undefined
+    direct: undefined as Api.CodeManage.DirectType | undefined,
+    isScan: 0 as 0 | 1
   })
   const dialogVisible = computed({
     get: () => props.visible,
@@ -86,10 +93,16 @@
     }
   }
   const rules: FormRules = {
-    domainName: [{ required: true, validator: validateDomainName, trigger: 'blur' }]
+    domainName: [{ required: true, validator: validateDomainName, trigger: 'blur' }],
+    isScan: [{ required: true, message: '请选择是否支持扫码', trigger: 'change' }]
   }
   const resetForm = () => {
-    Object.assign(formData, { domainName: '', platformType: undefined, direct: undefined })
+    Object.assign(formData, {
+      domainName: '',
+      platformType: undefined,
+      direct: undefined,
+      isScan: 0
+    })
     formRef.value?.clearValidate()
   }
   watch(
@@ -99,7 +112,8 @@
       Object.assign(formData, {
         domainName: props.codeData?.domainName ?? '',
         platformType: props.codeData?.platformType,
-        direct: props.codeData?.direct
+        direct: props.codeData?.direct,
+        isScan: props.codeData?.isScan ?? 0
       })
       nextTick(() => formRef.value?.clearValidate())
     }
@@ -113,7 +127,11 @@
     }
     const valid = await formRef.value.validate().catch(() => false)
     if (!valid || saving.value) return
-    const data: Api.CodeManage.UpdateCodeParams = { id, domainName: formData.domainName.trim() }
+    const data: Api.CodeManage.UpdateCodeParams = {
+      id,
+      domainName: formData.domainName.trim(),
+      isScan: formData.isScan
+    }
     if (props.codeData?.type !== 1) {
       if (formData.platformType != null) data.platformType = formData.platformType
       if (formData.direct != null) data.direct = formData.direct

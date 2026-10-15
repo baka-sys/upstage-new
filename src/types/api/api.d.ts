@@ -566,6 +566,8 @@ declare namespace Api {
       domainName: string
       platformType?: number
       direct?: DirectType
+      /** 是否支持扫码：0 支持，1 不支持 */
+      isScan?: 0 | 1
     }
 
     interface ResetCodeBatchParams {
