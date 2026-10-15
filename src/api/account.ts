@@ -13,6 +13,21 @@ export interface AccountAvatarUploadResult {
   filePath: string
 }
 
+interface AccountAccessUrlListResponse {
+  code: number
+  data?: Api.AccountManage.AccessUrlListItem[]
+}
+
+/** 按企业查询已生成的访问链接 */
+export async function getAccountAccessUrls(params: Api.AccountManage.AccessUrlListParams) {
+  const response = await request.get<AccountAccessUrlListResponse>({
+    url: '/accountUrl/list',
+    params
+  })
+
+  return response.data ?? []
+}
+
 /** 获取企业账号分页列表 */
 export async function getAccountPage(
   params: Api.AccountManage.AccountPageParams

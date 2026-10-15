@@ -175,6 +175,19 @@ declare namespace Api {
       accountId: number | string
       coin: number
     }
+
+    interface AccessUrlListParams {
+      accountId: number | string
+    }
+
+    interface AccessUrlListItem {
+      id: number | string
+      accountId: number | string
+      type: 1 | 2
+      mainVisitUrl?: string
+      nonceStr?: string
+      relationType?: AccountUrlMainManage.RelationType
+    }
   }
 
   /** 系统管理类型 */

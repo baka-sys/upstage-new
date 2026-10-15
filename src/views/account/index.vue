@@ -44,6 +44,7 @@
       :account-data="currentAccount"
       @success="handleUpdateSuccess"
     />
+    <AccessLinkDialog v-model:visible="accessLinkDialogVisible" :account-data="currentAccount" />
   </div>
 </template>
 
@@ -56,6 +57,7 @@
   import AccountDialog from './modules/account-dialog.vue'
   import PasswordDialog from './modules/password-dialog.vue'
   import RechargeDialog from './modules/recharge-dialog.vue'
+  import AccessLinkDialog from './modules/access-link-dialog.vue'
 
   defineOptions({ name: 'AccountManage' })
 
@@ -67,6 +69,7 @@
   const editDialogVisible = ref(false)
   const passwordDialogVisible = ref(false)
   const rechargeDialogVisible = ref(false)
+  const accessLinkDialogVisible = ref(false)
   const currentAccount = ref<AccountListItem>()
   const statusUpdatingId = ref<number | string>()
 
@@ -152,12 +155,17 @@
         {
           prop: 'operation',
           label: '操作',
-          width: 310,
+          width: 400,
           fixed: 'right',
           formatter: (row) => {
             const statusAction = row.status === 0 ? '禁用' : row.status === 1 ? '启用' : '--'
 
             return h('div', [
+              h(
+                ElButton,
+                { link: true, type: 'primary', onClick: () => openAccessLinkDialog(row) },
+                () => '访问链接'
+              ),
               h(
                 ElButton,
                 { link: true, type: 'warning', onClick: () => openRechargeDialog(row) },
@@ -218,6 +226,11 @@
   const openRechargeDialog = (row: AccountListItem) => {
     currentAccount.value = row
     rechargeDialogVisible.value = true
+  }
+
+  const openAccessLinkDialog = (row: AccountListItem) => {
+    currentAccount.value = row
+    accessLinkDialogVisible.value = true
   }
 
   const handleCreateSuccess = async () => {
