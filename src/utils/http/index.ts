@@ -180,7 +180,7 @@ function logOut(requestToken?: string) {
 function getRequestAccessToken(config?: AxiosRequestConfig): string | undefined {
   if (!config?.headers) return undefined
 
-  const authorization = axios.AxiosHeaders.from(config.headers as RawAxiosHeaders).get(
+  const authorization = axios.AxiosHeaders.from(config.headers as any).get(
     'Authorization'
   )
   if (typeof authorization !== 'string') return undefined
@@ -223,6 +223,7 @@ function delay(ms: number) {
 /** 请求函数 */
 async function request<T = any>(config: ExtendedAxiosRequestConfig): Promise<T> {
   try {
+    config.showErrorMessage = true
     const res = await axiosInstance.request<BaseResponse<T>>(config)
 
     // ✅ 跳过业务码校验（如文件下载），直接返回原始数据
