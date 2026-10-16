@@ -48,7 +48,7 @@
 
 <script setup lang="ts">
   import { CopyDocument } from '@element-plus/icons-vue'
-  import { ElButton, ElTag } from 'element-plus'
+  import { ElButton, ElLink, ElTag } from 'element-plus'
   import { getAccountUrlMainCopyList, getAccountUrlMainPage } from '@/api/account-url-main'
   import { useTable } from '@/hooks/core/useTable'
   import {
@@ -110,7 +110,19 @@
           label: '访问地址',
           minWidth: 360,
           showOverflowTooltip: true,
-          formatter: (row) => row.mainVisitUrl || '--'
+          formatter: (row) =>
+            row.mainVisitUrl
+              ? h(
+                  ElLink,
+                  {
+                    href: row.mainVisitUrl,
+                    target: '_blank',
+                    rel: 'noopener noreferrer',
+                    type: 'primary'
+                  },
+                  () => row.mainVisitUrl
+                )
+              : '--'
         },
         {
           prop: 'relationType',
