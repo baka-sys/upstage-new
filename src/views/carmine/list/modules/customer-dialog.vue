@@ -81,7 +81,7 @@ const accountLoading = ref(false)
 const accountOptions = ref<Api.CarmineMange.AccountListItem[]>([])
 
 // 表单数据
-let formData = reactive<Api.CarmineMange.GenerateCarmineParams>({
+const formData = reactive<Api.CarmineMange.GenerateCarmineParams>({
   lines: 0,
   days: 0,
   testCard: 0,
@@ -107,10 +107,13 @@ const rules: FormRules = {
 
 
 async function loadAccountOptions() {
+  accountOptions.value = []
   accountLoading.value = true
   try {
-    let result = await fetchAccountList()
-    accountOptions.value = result.data
+    const result = await fetchAccountList()
+    accountOptions.value = result.data ?? []
+  } catch {
+    // 请求错误由统一 HTTP 拦截器提示。
   } finally {
     accountLoading.value = false
   }
@@ -157,7 +160,14 @@ const getInitFormData = (): Api.CarmineMange.GenerateCarmineParams => ({
   accountId: undefined
 })
 
-onMounted(()=>{
-  getInitFormData()
-})
+watch(
+  () => props.visible,
+  (visible) => {
+    if (!visible) return
+    Object.assign(formData, getInitFormData())
+    loadAccountOptions()
+    nextTick(() => formRef.value?.clearValidate())
+  },
+  { immediate: true }
+)
 </script>
