@@ -128,7 +128,7 @@ const handleSubmit = async () => {
 
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
-
+  formData.prefixString = formData.prefixString?.trim()
   submitting.value = true
   try {
     const result = await generateCarmines(formData)
