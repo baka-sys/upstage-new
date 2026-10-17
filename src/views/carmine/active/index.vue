@@ -33,6 +33,7 @@
     <SynchronizationConfig v-model="synchronizationVisible" @success="handleConfigEditSuccess"></SynchronizationConfig>
 
     <StartConfig v-model="startConfigVisible" @success="handleConfigEditSuccess"></StartConfig>
+    <SayHelloPreviewDialog v-model:visible="sayHelloPreviewVisible" :card-data="currentSayHelloCard" />
   </div>
 </template>
 
@@ -50,6 +51,7 @@ import AllSettingDialog from './modules/all-setting-dialog.vue'
 import RatioEditDialog from './modules/ratio-edit-dialog.vue'
 import SynchronizationConfig from './modules/synchronization-config.vue'
 import StartConfig from './modules/start-config.vue'
+import SayHelloPreviewDialog from './modules/say-hello-preview-dialog.vue'
 
 defineOptions({ name: 'CarmineActive' })
 
@@ -80,6 +82,8 @@ const allSettingVisible = ref(false)
 const ratioEditVisible = ref(false)
 const synchronizationVisible = ref(false)
 const startConfigVisible = ref(false)
+const sayHelloPreviewVisible = ref(false)
+const currentSayHelloCard = ref<ActiveListItem>()
 const currentRatio = ref<Api.CarmineMange.EntryRatioItem>()
 const batchActionLoading = ref<'sync' | 'start' | 'stop' | null>(null)
 
@@ -194,7 +198,11 @@ const {
         fixed: 'right',
         formatter: (row) =>
           h('div', [
-            h(ElButton, { link: true, type: 'primary' }, () => '打招呼'),
+            h(
+              ElButton,
+              { link: true, type: 'primary', onClick: () => openSayHelloPreview(row) },
+              () => '打招呼'
+            ),
             h(
               ElButton,
               { link: true, type: 'primary', onClick: () => openRatioEdit(row) },
@@ -219,6 +227,11 @@ const handleReset = async () => {
 
 const handleSelectionChange = (selection: ActiveListItem[]) => {
   selectedRows.value = selection
+}
+
+const openSayHelloPreview = (row: ActiveListItem) => {
+  currentSayHelloCard.value = row
+  sayHelloPreviewVisible.value = true
 }
 
 const openRatioEdit = (row: ActiveListItem) => {

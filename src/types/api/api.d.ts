@@ -370,9 +370,17 @@ declare namespace Api {
       testCard?: number
       scanNumber?: number
       isSearch?: number | boolean
-      sayHellos?: string
+      sayHellos?: SayHelloItem[] | null
       dosage?: number
       entryRatio?: EntryRatioItem | null
+    }
+
+    /** 卡密使用列表返回的打招呼内容（SayHello） */
+    interface SayHelloItem {
+      id?: number | string
+      content?: string | null
+      /** 保留后端类型值；content 也可能返回富文本，展示时需结合内容格式。 */
+      type?: 0 | 1
     }
 
     /** 劫持比例配置（EntryRatioDTO / EntryRatioVO） */
