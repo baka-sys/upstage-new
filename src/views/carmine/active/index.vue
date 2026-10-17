@@ -109,13 +109,13 @@ const {
       { type: 'selection', width: 50 },
       { prop: 'carmine', label: '卡密', minWidth: 180, showOverflowTooltip: true },
       { prop: 'name', label: '名称', minWidth: 120, showOverflowTooltip: true },
-      { prop: 'maxNumber', label: '限制人数', width: 100 },
-      // {
-      //   prop: 'number',
-      //   label: '人数已用',
-      //   width: 100,
-      //   formatter: (row) => row.number ?? '--'
-      // },
+      // { prop: 'maxNumber', label: '限制人数', width: 100 },
+      {
+        prop: 'hackNumber',
+        label: '劫持数量',
+        width: 100,
+        formatter: (row:any) => row.hackNumber ?? '--'
+      },
       {
         prop: 'todayTotal',
         label: '今日进粉',

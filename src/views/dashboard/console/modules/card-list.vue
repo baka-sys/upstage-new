@@ -186,7 +186,7 @@
     },
     {
       key: 'customerOnlineTotal',
-      title: '今日开卡数量',
+      title: '今日激活数量',
       value: toNumber(userCount.value?.customerOnlineTotal),
       description: '今日激活会员卡',
       icon: 'ri:user-add-line',
