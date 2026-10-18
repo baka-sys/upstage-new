@@ -2,16 +2,20 @@
   <ElDialog v-model="visible" title="更改配置" width="500px" align-center :close-on-click-modal="!saving"
     :close-on-press-escape="!saving" :show-close="!saving" destroy-on-close @closed="handleClosed">
     <ElForm ref="formRef" :model="form" :rules="rules" label-width="120px">
-      <ElForm ref="formRef" :model="form" :rules="rules" label-width="140px">
-        <ElFormItem label="企业账号" prop="accountId">
-          <ElSelect v-model="form.accountId" placeholder="请选择企业账号" :loading="accountLoading" filterable clearable
-            multiple>
-            <ElOption label="普通卡" :value="0" />
-            <ElOption v-for="account in accountOptions" :key="account.id" :label="`${account.accountName}`"
-              :value="account.id" />
-          </ElSelect>
-        </ElFormItem>
-      </ElForm>
+      <ElFormItem label="类型" prop="type">
+        <ElRadioGroup v-model="form.type">
+          <ElRadioButton :label="0">全部</ElRadioButton>
+          <ElRadioButton :label="1">其他</ElRadioButton>
+        </ElRadioGroup>
+      </ElFormItem>
+      <ElFormItem v-if="form.type === 1" label="企业账号" prop="accountId">
+        <ElSelect v-model="form.accountId" placeholder="请选择企业账号" :loading="accountLoading" filterable clearable
+          multiple>
+          <ElOption label="普通卡" :value="0" />
+          <ElOption v-for="account in accountOptions" :key="account.id" :label="`${account.accountName}`"
+            :value="account.id" />
+        </ElSelect>
+      </ElFormItem>
 
       <ElFormItem label="比例开关" prop="switchCodeTwo">
         <ElRadioGroup v-model="form.switchCodeTwo">
@@ -64,7 +68,7 @@ const visible = computed({
 })
 
 const createDefaultForm = (): any => ({
-  type: 1,
+  type: 0,
   switchCodeTwo: 0,
   mainRadioNumberTwo: 0,
   subRadioNumberTwo: 0,
@@ -136,7 +140,7 @@ const handleSubmit = async () => {
     ...form
   }
   try {
-    let result:any = await batchUpdateAllEntryRatio(params)
+    let result: any = await batchUpdateAllEntryRatio(params)
     if (result.code === 200) {
       ElMessage.success('配置任务已提交，请稍后刷新查看结果')
       visible.value = false

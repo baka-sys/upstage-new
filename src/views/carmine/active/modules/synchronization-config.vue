@@ -2,7 +2,13 @@
     <ElDialog v-model="visible" title="同步配置" width="900px" align-center :close-on-click-modal="!saving"
         :close-on-press-escape="!saving" :show-close="!saving" destroy-on-close @closed="handleClosed">
         <ElForm ref="formRef" :model="form" :rules="rules" label-width="140px">
-            <ElFormItem label="企业账号" prop="accountId">
+            <ElFormItem label="类型" prop="type">
+                <ElRadioGroup v-model="form.type">
+                    <ElRadioButton :label="0">全部</ElRadioButton>
+                    <ElRadioButton :label="1">其他</ElRadioButton>
+                </ElRadioGroup>
+            </ElFormItem>
+            <ElFormItem v-if="form.type === 1" label="企业账号" prop="accountId">
                 <ElSelect v-model="form.accountId" placeholder="请选择企业账号" :loading="accountLoading" filterable clearable
                     multiple>
                     <ElOption label="普通卡" :value="0" />
@@ -45,6 +51,7 @@ const visible = computed({
 })
 
 const createEmptyForm = (): any => ({
+    type:0,
     accountId: []
 })
 
@@ -92,7 +99,8 @@ const handleSubmit = async () => {
     const valid = await formRef.value.validate().catch(() => false)
     if (!valid) return
     let params = {
-        accountIdSetString: form.accountId.join(',')
+        type: 0,
+        accountIdSetString: form.accountId === null ? null :form.accountId.join(',')
     }
     saving.value = true
     try {

@@ -1,5 +1,5 @@
 <template>
-  <ElDialog v-model="visible" title="修改劫持比例" width="760px" align-center :close-on-click-modal="!saving"
+  <ElDialog v-model="visible" title="修改配置" width="760px" align-center :close-on-click-modal="!saving"
     :close-on-press-escape="!saving" :show-close="!saving" destroy-on-close @closed="handleClosed">
     <ElForm ref="formRef" :model="form" :rules="rules" label-width="120px">
       <ElFormItem label="主卡">
