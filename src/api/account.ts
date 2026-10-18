@@ -47,7 +47,7 @@ export async function getAccountPage(
 }
 
 /** 新增企业账号 */
-export function addAccount(data: Api.AccountManage.AddAccountParams) {
+export function addAccount(data: any) {
   return request.post<void>({
     url: '/account/add',
     data
@@ -55,7 +55,7 @@ export function addAccount(data: Api.AccountManage.AddAccountParams) {
 }
 
 /** 修改企业账号资料 */
-export function updateAccountInfo(data: Api.AccountManage.UpdateAccountInfoParams) {
+export function updateAccountInfo(data: any) {
   return request.post<void>({
     url: '/account/updateInfo',
     data

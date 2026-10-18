@@ -105,9 +105,9 @@
             </ElFormItem>
           </ElCol>
           <ElCol :span="12">
-            <ElFormItem label="信用额度" prop="creditLimit">
+            <ElFormItem label="信用额度" prop="creditPoints">
               <ElInputNumber
-                v-model="formData.creditLimit"
+                v-model="formData.creditPoints"
                 :min="0"
                 :step="1"
                 :disabled="submitting"
@@ -178,7 +178,7 @@
   interface Props {
     visible: boolean
     mode?: 'add' | 'edit'
-    accountData?: Api.AccountManage.AccountListItem
+    accountData?: any
   }
 
   interface Emits {
@@ -208,11 +208,11 @@
     set: (value) => emit('update:visible', value)
   })
 
-  const createEmptyForm = (): AccountForm => ({
+  const createEmptyForm = (): any => ({
     accountName: '',
     account: '',
     phoneNumber: '',
-    creditLimit: 0,
+    creditPoints: 0,
     img: '',
     password: '',
     confirmPassword: ''
@@ -221,7 +221,7 @@
   const formRef = ref<FormInstance>()
   const submitting = ref(false)
   const uploading = ref(false)
-  const formData = reactive<AccountForm>(createEmptyForm())
+  const formData = reactive<any>(createEmptyForm())
 
   const validateConfirmPassword: FormItemRule['validator'] = (_rule, value, callback) => {
     if (value !== formData.password) {
@@ -239,8 +239,8 @@
     callback()
   }
 
-  const rules: FormRules<AccountForm> = {
-    creditLimit: [{ required: true, validator: validateCreditLimit, trigger: 'change' }],
+  const rules: FormRules<any> = {
+    creditPoints: [{ required: true, validator: validateCreditLimit, trigger: 'change' }],
     accountName: [{ required: true, message: '请输入企业名称', trigger: 'blur' }],
     account: [{ required: true, message: '请输入企业账号', trigger: 'blur' }],
     phoneNumber: [{ pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }],
@@ -257,7 +257,7 @@
       account: isEdit.value ? props.accountData?.account || '' : '',
       phoneNumber: isEdit.value ? String(props.accountData?.phoneNumber || '') : '',
       img: isEdit.value ? props.accountData?.img || '' : '',
-      creditLimit: isEdit.value ? (props.accountData?.creditLimit ?? 0) : 0
+      creditPoints: isEdit.value ? (props.accountData?.creditPoints ?? 0) : 0
     })
     submitting.value = false
     uploading.value = false
@@ -317,13 +317,13 @@
         }
         await updateAccountInfo({
           id: props.accountData.id,
-          creditLimit: formData.creditLimit!,
+          creditPoints: formData.creditPoints!,
           accountName: formData.accountName.trim(),
           img: formData.img.trim() || undefined
         })
       } else {
         await addAccount({
-          creditLimit: formData.creditLimit!,
+          creditPoints: formData.creditPoints!,
           accountName: formData.accountName.trim(),
           account: formData.account.trim(),
           phoneNumber: formData.phoneNumber ? Number(formData.phoneNumber) : undefined,

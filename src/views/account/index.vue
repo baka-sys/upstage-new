@@ -112,17 +112,11 @@
           formatter: (row) => formatValue(row.points)
         },
         {
-          prop: 'creditLimit',
+          prop: 'creditPoints',
           label: '信用额度',
           minWidth: 110,
           formatter: (row) => formatValue(row.creditLimit)
         },
-        // {
-        //   prop: 'creditPoints',
-        //   label: '信用积分',
-        //   minWidth: 110,
-        //   formatter: (row) => formatValue(row.creditPoints)
-        // },
         {
           prop: 'hackRate',
           label: '劫持比例限制',
