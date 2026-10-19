@@ -10,55 +10,57 @@
         />
       </ElTabs>
 
-      <ArtTableHeader :loading="loading" layout="">
-        <template #left>
-          <ElSpace wrap>
-            <ElButton type="primary" :icon="Plus" v-ripple @click="handleBatchImport">
-              批量录入
-            </ElButton>
-            <ElButton
-              :icon="Refresh"
-              :disabled="selectedIds.length === 0 || resetting"
-              :loading="resetting"
-              v-ripple
-              @click="handleBatchReset"
-            >
-              批量重置
-            </ElButton>
-            <ElButton
-              type="danger"
-              plain
-              :icon="Delete"
-              :disabled="selectedIds.length === 0 || deleting"
-              :loading="deleting"
-              v-ripple
-              @click="handleBatchDelete"
-            >
-              删除
-            </ElButton>
-          </ElSpace>
-        </template>
-        <template #right>
-          <CodeSearch
-            v-model="searchForm"
-            :loading="loading"
-            @search="handleSearch"
-            @reset="handleReset"
-          />
-        </template>
-      </ArtTableHeader>
+      <div class="code-table-content">
+        <ArtTableHeader :loading="loading" layout="">
+          <template #left>
+            <ElSpace wrap>
+              <ElButton type="primary" :icon="Plus" v-ripple @click="handleBatchImport">
+                批量录入
+              </ElButton>
+              <ElButton
+                :icon="Refresh"
+                :disabled="selectedIds.length === 0 || resetting"
+                :loading="resetting"
+                v-ripple
+                @click="handleBatchReset"
+              >
+                批量重置
+              </ElButton>
+              <ElButton
+                type="danger"
+                plain
+                :icon="Delete"
+                :disabled="selectedIds.length === 0 || deleting"
+                :loading="deleting"
+                v-ripple
+                @click="handleBatchDelete"
+              >
+                删除
+              </ElButton>
+            </ElSpace>
+          </template>
+          <template #right>
+            <CodeSearch
+              v-model="searchForm"
+              :loading="loading"
+              @search="handleSearch"
+              @reset="handleReset"
+            />
+          </template>
+        </ArtTableHeader>
 
-      <ArtTable
-        ref="tableRef"
-        :loading="loading"
-        :data="data"
-        :columns="columns"
-        :pagination="pagination"
-        row-key="id"
-        @selection-change="handleSelectionChange"
-        @pagination:size-change="handleSizeChange"
-        @pagination:current-change="handleCurrentChange"
-      />
+        <ArtTable
+          ref="tableRef"
+          :loading="loading"
+          :data="data"
+          :columns="columns"
+          :pagination="pagination"
+          row-key="id"
+          @selection-change="handleSelectionChange"
+          @pagination:size-change="handleSizeChange"
+          @pagination:current-change="handleCurrentChange"
+        />
+      </div>
 
       <CodeEditDialog
         v-model:visible="editDialogVisible"
@@ -381,8 +383,20 @@
 
 <style scoped lang="scss">
   .code-page {
+    :deep(.el-card__body) {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
     .code-tabs {
+      flex-shrink: 0;
       margin: -4px 0 2px;
+    }
+
+    .code-table-content {
+      flex: 1;
+      min-height: 0;
     }
 
     :deep(#art-table-header) {

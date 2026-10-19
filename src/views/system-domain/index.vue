@@ -161,9 +161,32 @@
 
 <style scoped lang="scss">
   .system-domain-page {
+    :deep(.el-card__body) {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
     :deep(#art-table-header) {
+      flex-shrink: 0;
       gap: 16px;
       margin-bottom: 12px;
+    }
+
+    :deep(.art-table) {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    :deep(.art-table > .el-table) {
+      flex: 1;
+      min-height: 0;
+    }
+
+    :deep(.art-table > .pagination) {
+      flex-shrink: 0;
     }
   }
 </style>
