@@ -98,7 +98,7 @@
 </template>
 
 <script setup lang="ts">
-  import { fetchHackCount, fetchUserCount } from '@/api/dashboard'
+  import { fetchCodeCount, fetchHackCount, fetchUserCount } from '@/api/dashboard'
 
   type StatisticTone = 'primary' | 'secondary' | 'success' | 'warning' | 'danger'
 
@@ -123,6 +123,7 @@
   const loading = ref(false)
   const userCount = ref<any>(null)
   const hackCount = ref<any>(null)
+  const codeCount = ref<Api.Dashboard.CodeCount | null>(null)
 
   const toNumber = (value: number | null | undefined) => value ?? 0
 
@@ -199,6 +200,22 @@
       description: '今日累计消耗积分',
       icon: 'ri:coins-line',
       tone: 'danger'
+    },
+    {
+      key: 'entranceNumber',
+      title: '新增入口域名',
+      value: toNumber(codeCount.value?.entranceNumber),
+      description: '今日新增入口域名数量',
+      icon: 'ri:links-line',
+      tone: 'primary'
+    },
+    {
+      key: 'entranceFailNumber',
+      title: '入口失效域名',
+      value: toNumber(codeCount.value?.entranceFailNumber),
+      description: '今日新增中已失效的入口域名',
+      icon: 'ri:close-circle-line',
+      tone: 'danger'
     }
   ])
 
@@ -256,9 +273,15 @@
   const loadStatistics = async () => {
     loading.value = true
     try {
-      const [userData, hackData]:any = await Promise.all([fetchUserCount(), fetchHackCount()])
+      const [userData, hackData, codeData]: any = await Promise.all([
+        fetchUserCount(),
+        fetchHackCount(),
+        // 新增统计请求失败时保留原有统计，错误由统一请求层处理。
+        fetchCodeCount().catch(() => null)
+      ])
       userCount.value = userData.data
       hackCount.value = hackData.data
+      codeCount.value = codeData?.data ?? null
     } finally {
       loading.value = false
     }
