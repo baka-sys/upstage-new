@@ -127,6 +127,18 @@ const {
         formatter: (row) => row.todayTotal ?? row.number ?? '--'
       },
       {
+        prop: 'activeTime',
+        label: '激活时间',
+        width: 180,
+        formatter: (row:any) => row.activeTime
+      },
+      {
+        prop: 'activeTime',
+        label: '到期时间',
+        width: 180,
+        formatter: (row:any) => row.expirationDate
+      },
+      {
         prop: 'accountName',
         label: '企业账号名称',
         minWidth: 150,

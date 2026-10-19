@@ -13,3 +13,17 @@ export function fetchHackCount() {
     url: '/user/countRadio'
   })
 }
+
+interface CodeCountResponse {
+  success: boolean
+  code: number
+  message?: string
+  data: Api.Dashboard.CodeCount | null
+}
+
+/** 获取总后台入口域名统计 */
+export function fetchCodeCount() {
+  return request.get<CodeCountResponse>({
+    url: '/code/codeCount'
+  })
+}

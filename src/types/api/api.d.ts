@@ -110,6 +110,14 @@ declare namespace Api {
       chackTotal: number | null
       todayHackTotal: number | null
     }
+
+    /** 工作台使用的入口域名统计字段（GET /code/codeCount） */
+    interface CodeCount {
+      /** 今日创建的入口域名数量 */
+      entranceNumber: number | null
+      /** 今日创建的入口域名中已失效的数量 */
+      entranceFailNumber: number | null
+    }
   }
 
   /** 企业账号管理 */
