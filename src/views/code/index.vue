@@ -330,16 +330,16 @@
     if (![0, 1].includes(row.status ?? -1) || statusUpdatingId.value != null) return
 
     const actionText = row.status === 0 ? '关闭' : '开启'
-    try {
-      await ElMessageBox.confirm(`确定要${actionText}该活码域名吗？`, `确认${actionText}`, {
-        confirmButtonText: '确认',
-        cancelButtonText: '取消',
-        type: 'warning'
-      })
-    } catch {
-      // 用户取消确认时不调用接口，也不修改本地状态。
-      return
-    }
+    // try {
+    //   await ElMessageBox.confirm(`确定要${actionText}该活码域名吗？`, `确认${actionText}`, {
+    //     confirmButtonText: '确认',
+    //     cancelButtonText: '取消',
+    //     type: 'warning'
+    //   })
+    // } catch {
+    //   // 用户取消确认时不调用接口，也不修改本地状态。
+    //   return
+    // }
 
     statusUpdatingId.value = row.id
     try {

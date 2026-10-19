@@ -55,6 +55,14 @@
               </template>
             </ElTableColumn>
             <ElTableColumn prop="number" label="绑定数量" width="190" />
+            <!-- 新增：删除操作列 -->
+            <ElTableColumn label="操作" width="90" align="center" fixed="right">
+              <template #default="{ $index }">
+                <ElButton type="danger" link :disabled="saving" @click="removeCarmine($index)">
+                  删除
+                </ElButton>
+              </template>
+            </ElTableColumn>
           </ElTable>
           <p class="text-sm text-g-500">保存后绑定数量将归零。</p>
         </div>
@@ -107,7 +115,7 @@ interface SettingForm {
   hackTotalNumber?: number
   delayTime?: number
   excludeCard: string
-  carmines: EditableCarmine[],
+  carmines: EditableCarmine[]
   accountId: []
 }
 
@@ -222,6 +230,11 @@ watch(
 
 const addCarmine = () => {
   form.carmines.push({ carmine: '', number: 0 })
+}
+
+// 新增：删除指定行
+const removeCarmine = (index: number) => {
+  form.carmines.splice(index, 1)
 }
 
 const normalizeExcludeCard = (value: string) =>
