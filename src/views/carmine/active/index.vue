@@ -133,7 +133,7 @@ const {
         formatter: (row:any) => row.activeTime
       },
       {
-        prop: 'activeTime',
+        prop: 'expirationDate',
         label: '到期时间',
         width: 180,
         formatter: (row:any) => row.expirationDate
