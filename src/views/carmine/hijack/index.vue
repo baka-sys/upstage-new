@@ -77,6 +77,7 @@
   import DefaultSettingDialog from '../active/modules/default-setting-dialog.vue'
   import AllSettingDialog from '../active/modules/all-setting-dialog.vue'
   import RatioEditDialog from './modules/ratio-edit-dialog.vue'
+  import CarmineCopy from '../components/carmine-copy.vue'
 
   defineOptions({ name: 'CarmineHijack' })
 
@@ -115,8 +116,20 @@
       apiFn: fetchEntryRatioPage,
       apiParams: { page: 1, limit: 20 },
       columnsFactory: () => [
-        { prop: 'mainCarmine', label: '主卡', minWidth: 190, showOverflowTooltip: true },
-        { prop: 'subCarmine', label: '副卡', minWidth: 190, showOverflowTooltip: true },
+        {
+          prop: 'mainCarmine',
+          label: '主卡',
+          minWidth: 190,
+          showOverflowTooltip: true,
+          formatter: (row) => h(CarmineCopy, { value: row.mainCarmine })
+        },
+        {
+          prop: 'subCarmine',
+          label: '副卡',
+          minWidth: 190,
+          showOverflowTooltip: true,
+          formatter: (row) => h(CarmineCopy, { value: row.subCarmine })
+        },
         {
           prop: 'ratio',
           label: '劫持比例',

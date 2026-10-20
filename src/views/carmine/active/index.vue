@@ -52,6 +52,7 @@ import RatioEditDialog from './modules/ratio-edit-dialog.vue'
 import SynchronizationConfig from './modules/synchronization-config.vue'
 import StartConfig from './modules/start-config.vue'
 import SayHelloPreviewDialog from './modules/say-hello-preview-dialog.vue'
+import CarmineCopy from '../components/carmine-copy.vue'
 
 defineOptions({ name: 'CarmineActive' })
 
@@ -111,7 +112,13 @@ const {
     },
     columnsFactory: () => [
       { type: 'selection', width: 50 },
-      { prop: 'carmine', label: '卡密', minWidth: 180, showOverflowTooltip: true },
+      {
+        prop: 'carmine',
+        label: '卡密',
+        minWidth: 180,
+        showOverflowTooltip: true,
+        formatter: (row) => h(CarmineCopy, { value: row.carmine })
+      },
       { prop: 'name', label: '名称', minWidth: 120, showOverflowTooltip: true },
       // { prop: 'maxNumber', label: '限制人数', width: 100 },
       {
@@ -159,14 +166,14 @@ const {
         label: '副卡1',
         minWidth: 180,
         showOverflowTooltip: true,
-        formatter: (row) => row.entryRatio?.subCarmine?.trim() || '--'
+        formatter: (row) => h(CarmineCopy, { value: row.entryRatio?.subCarmine })
       },
       {
         prop: 'entryRatio.subCarmineTwo',
         label: '副卡2',
         minWidth: 180,
         showOverflowTooltip: true,
-        formatter: (row) => row.entryRatio?.subCarmineTwo?.trim() || '--'
+        formatter: (row) => h(CarmineCopy, { value: row.entryRatio?.subCarmineTwo })
       },
       {
         prop: 'status',
