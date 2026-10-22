@@ -50,6 +50,7 @@
 
 <script setup lang="ts">
   import { Plus } from '@element-plus/icons-vue'
+  import { useMediaQuery } from '@vueuse/core'
   import { ElButton, ElMessageBox, ElTag } from 'element-plus'
   import { getAccountPage, updateAccountStatus } from '@/api/account'
   import { useTable } from '@/hooks/core/useTable'
@@ -74,6 +75,7 @@
   const statusUpdatingId = ref<number | string>()
 
   const formatValue = (value: unknown) => value ?? '--'
+  const isMobileTable = useMediaQuery('(max-width: 800px), (pointer: coarse)')
 
   const {
     columns,
@@ -88,7 +90,8 @@
     handleCurrentChange,
     refreshData,
     refreshCreate,
-    refreshUpdate
+    refreshUpdate,
+    updateColumn
   } = useTable({
     core: {
       apiFn: getAccountPage,
@@ -192,6 +195,13 @@
       ]
     }
   })
+
+  // 手机端取消宽操作列固定，避免遮住企业名称和账号等数据。
+  watch(
+    isMobileTable,
+    (isMobile) => updateColumn?.('operation', { fixed: isMobile ? false : 'right' }),
+    { immediate: true }
+  )
 
   const handleSearch = (params: SearchForm) => {
     replaceSearchParams(params)
