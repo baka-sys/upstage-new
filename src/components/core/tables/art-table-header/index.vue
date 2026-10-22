@@ -123,7 +123,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref, onMounted, onUnmounted } from 'vue'
+  import { computed, ref, onMounted, onUnmounted, onDeactivated } from 'vue'
   import { storeToRefs } from 'pinia'
   import { TableSizeEnum } from '@/enums/formEnum'
   import { useTableStore } from '@/store/modules/table'
@@ -262,29 +262,37 @@
 
   /** 保存原始的 overflow 样式，用于退出全屏时恢复 */
   const originalOverflow = ref('')
+  let fullScreenElement: Element | null = null
+
+  const exitFullScreen = () => {
+    if (!isFullScreen.value) return
+
+    document.body.style.overflow = originalOverflow.value
+    fullScreenElement?.classList.remove('el-full-screen')
+    fullScreenElement = null
+    isFullScreen.value = false
+    tableStore.setIsFullScreen(false)
+  }
 
   /**
    * 切换全屏状态
    * 进入全屏时会隐藏页面滚动条，退出时恢复原状态
    */
   const toggleFullScreen = () => {
+    if (isFullScreen.value) {
+      exitFullScreen()
+      return
+    }
+
     const el = document.querySelector(`.${props.fullClass}`)
     if (!el) return
 
-    isFullScreen.value = !isFullScreen.value
-
-    if (isFullScreen.value) {
-      // 进入全屏：保存原始样式并隐藏滚动条
-      originalOverflow.value = document.body.style.overflow
-      document.body.style.overflow = 'hidden'
-      el.classList.add('el-full-screen')
-      tableStore.setIsFullScreen(true)
-    } else {
-      // 退出全屏：恢复原始样式
-      document.body.style.overflow = originalOverflow.value
-      el.classList.remove('el-full-screen')
-      tableStore.setIsFullScreen(false)
-    }
+    fullScreenElement = el
+    originalOverflow.value = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    el.classList.add('el-full-screen')
+    isFullScreen.value = true
+    tableStore.setIsFullScreen(true)
   }
 
   /**
@@ -302,19 +310,15 @@
     document.addEventListener('keydown', handleEscapeKey)
   })
 
+  // 缓存页面离开时不会卸载，也需要解除全屏对页面滚动的锁定。
+  onDeactivated(exitFullScreen)
+
   /** 组件卸载时清理资源 */
   onUnmounted(() => {
     // 移除事件监听器
     document.removeEventListener('keydown', handleEscapeKey)
 
-    // 如果组件在全屏状态下被卸载，恢复页面滚动状态
-    if (isFullScreen.value) {
-      document.body.style.overflow = originalOverflow.value
-      const el = document.querySelector(`.${props.fullClass}`)
-      if (el) {
-        el.classList.remove('el-full-screen')
-      }
-    }
+    exitFullScreen()
   })
 </script>
 
