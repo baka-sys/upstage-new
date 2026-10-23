@@ -395,7 +395,7 @@
       if (!result?.filePath) throw new Error('上传接口未返回图片地址')
 
       formData.img = result.filePath
-      backgroundPreviewUrl.value = uploadUrl.value + formData.img
+      backgroundPreviewUrl.value = buildBackgroundUrl(formData.img)
       formRef.value?.clearValidate('img')
       options.onSuccess(result)
       ElMessage.success('验证码背景上传成功')
