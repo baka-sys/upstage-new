@@ -3,11 +3,11 @@
     :close-on-press-escape="!saving" :show-close="!saving" destroy-on-close @closed="handleClosed">
     <ElForm ref="formRef" :model="form" :rules="rules" label-width="120px">
       <ElFormItem label="主卡">
-        <ElInput :model-value="form.mainCarmine" disabled />
+        <CarmineCopy :value="form.mainCarmine" />
       </ElFormItem>
       <ElDivider content-position="left">副卡1比例</ElDivider>
       <ElFormItem label="副卡1" prop="subCarmine">
-        <ElInput :model-value="form.subCarmine" disabled placeholder="暂无副卡1卡密" />
+        <CarmineCopy :value="form.subCarmine" />
       </ElFormItem>
       <ElRow :gutter="16">
         <ElCol :span="12">
@@ -32,7 +32,11 @@
       </ElFormItem>
       <ElDivider content-position="left">副卡2比例</ElDivider>
       <ElFormItem label="副卡2" prop="subCarmineTwo">
-        <ElInput v-model.trim="form.subCarmineTwo" placeholder="请输入副卡2卡密" />
+        <ElInput v-model.trim="form.subCarmineTwo" placeholder="请输入副卡2卡密">
+          <template v-if="form.subCarmineTwo" #suffix>
+            <CarmineCopy :value="form.subCarmineTwo" label="复制" />
+          </template>
+        </ElInput>
       </ElFormItem>
       <ElRow :gutter="16">
         <ElCol :span="12">
@@ -66,6 +70,7 @@
 <script setup lang="ts">
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { updateEntryRatio } from '@/api/carmine'
+import CarmineCopy from '../../components/carmine-copy.vue'
 
 interface Props {
   modelValue: boolean

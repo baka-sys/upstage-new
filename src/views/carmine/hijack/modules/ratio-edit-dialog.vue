@@ -9,10 +9,14 @@
   >
     <ElForm ref="formRef" :model="form" :rules="rules" label-width="110px">
       <ElFormItem label="主卡">
-        <ElInput v-model="form.mainCarmine" disabled />
+        <CarmineCopy :value="form.mainCarmine" />
       </ElFormItem>
       <ElFormItem label="副卡" prop="subCarmine">
-        <ElInput v-model.trim="form.subCarmine" clearable placeholder="请输入副卡卡密" />
+        <ElInput v-model.trim="form.subCarmine" clearable placeholder="请输入副卡卡密">
+          <template v-if="form.subCarmine" #suffix>
+            <CarmineCopy :value="form.subCarmine" label="复制" />
+          </template>
+        </ElInput>
       </ElFormItem>
       <ElFormItem label="主卡人数" prop="mainRadioNumber">
         <ElInputNumber v-model="form.mainRadioNumber" :min="0" :precision="0" />
@@ -43,6 +47,7 @@
 <script setup lang="ts">
   import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
   import { updateEntryRatio } from '@/api/carmine'
+  import CarmineCopy from '../../components/carmine-copy.vue'
 
   interface Props {
     modelValue: boolean

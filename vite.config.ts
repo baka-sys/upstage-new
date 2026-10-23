@@ -2,6 +2,8 @@ import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { existsSync, readdirSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import viteCompression from 'vite-plugin-compression'
 import Components from 'unplugin-vue-components/vite'
@@ -108,6 +110,8 @@ export default ({ mode }: { mode: string }) => {
     ],
     // 依赖预构建：避免运行时重复请求与转换，提升首次加载速度
     optimizeDeps: {
+      // 包含自动导入的组件，避免首次切换页面时才发现新的依赖。
+      entries: ['index.html', 'src/views/**/*.vue', 'src/components/**/*.vue'],
       include: [
         'echarts/core',
         'echarts/charts',
@@ -119,8 +123,7 @@ export default ({ mode }: { mode: string }) => {
         'file-saver',
         'vue-img-cutter',
         'element-plus/es',
-        'element-plus/es/components/*/style/css',
-        'element-plus/es/components/*/style/index'
+        ...getElementPlusStyleEntries()
       ]
     },
     css: {
@@ -153,4 +156,20 @@ export default ({ mode }: { mode: string }) => {
 
 function resolvePath(paths: string) {
   return path.resolve(__dirname, paths)
+}
+
+function getElementPlusStyleEntries(): string[] {
+  const configRequire = createRequire(import.meta.url)
+  const packageDir = path.dirname(configRequire.resolve('element-plus/package.json'))
+  const componentsDir = path.join(packageDir, 'es/components')
+
+  // 直接使用已安装包的文件；按 exports 展开的通配符可能漏掉没有类型声明的样式入口。
+  return readdirSync(componentsDir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .flatMap(({ name }) =>
+      ['css', 'index']
+        .filter((style) => existsSync(path.join(componentsDir, name, 'style', `${style}.mjs`)))
+        .map((style) => `element-plus/es/components/${name}/style/${style}`)
+    )
+    .sort()
 }

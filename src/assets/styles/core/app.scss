@@ -205,8 +205,27 @@ body.el-popup-parent--hidden {
   display: flex;
   flex-direction: column;
 
-  @media (max-width: 640px) {
+  // 手机横屏和触屏设备也按内容展开，避免搜索栏、工具栏挤掉表格正文。
+  @media (width <= 800px), (pointer: coarse) {
     height: auto;
+
+    &.el-full-screen {
+      overflow-y: auto;
+    }
+
+    .art-table-card {
+      flex: none;
+
+      > .el-card__body {
+        height: auto;
+      }
+
+      .art-table,
+      .el-table {
+        flex: none;
+        height: auto !important;
+      }
+    }
   }
 }
 
