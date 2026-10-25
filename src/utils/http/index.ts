@@ -14,12 +14,7 @@
  * @author Art Design Pro Team
  */
 
-import axios, {
-  AxiosRequestConfig,
-  AxiosResponse,
-  type AxiosHeaders,
-  InternalAxiosRequestConfig
-} from 'axios'
+import axios, { AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import { useUserStore } from '@/store/modules/user'
 import { ApiStatus } from './status'
 import { HttpError, handleError, showError, showSuccess } from './error'
@@ -39,6 +34,8 @@ let unauthorizedTimer: ReturnType<typeof setTimeout> | null = null
 
 /** 扩展 AxiosRequestConfig */
 interface ExtendedAxiosRequestConfig extends AxiosRequestConfig {
+  /** 独立图片服务使用公开上传接口，不携带管理端凭证。 */
+  skipAuth?: boolean
   showErrorMessage?: boolean
   showSuccessMessage?: boolean
   skipCodeCheck?: boolean
@@ -82,7 +79,7 @@ axiosInstance.interceptors.request.use(
       throw new Error('Refusing to send credentials outside the configured API')
     }
     const { accessToken } = useUserStore()
-    if (accessToken) {
+    if (accessToken && !(request as ExtendedAxiosRequestConfig).skipAuth) {
       request.headers.set('Authorization', 'Bearer ' + accessToken)
     }
 
@@ -118,7 +115,7 @@ axiosInstance.interceptors.response.use(
     const { status, data } = response
 
     // ✅ 修复 2：优先读业务码 code，兼容 message / msg
-    const code = (data as any)?.code ?? status
+    const code = Number((data as any)?.code ?? status)
     const message = (data as any)?.message ?? (data as any)?.msg ?? undefined
 
     // ✅ 修复 3：按业务码判断成功
@@ -126,14 +123,17 @@ axiosInstance.interceptors.response.use(
       return response
     }
 
-    if (code === ApiStatus.unauthorized) {
+    if (code === ApiStatus.unauthorized && !config.skipAuth) {
       handleUnauthorizedError(message, getRequestAccessToken(response.config))
     }
 
     throw createHttpError(message || $t('httpMsg.requestFailed'), code)
   },
   (error) => {
-    if (error.response?.status === ApiStatus.unauthorized) {
+    if (
+      error.response?.status === ApiStatus.unauthorized &&
+      !(error.config as ExtendedAxiosRequestConfig)?.skipAuth
+    ) {
       handleUnauthorizedError(undefined, getRequestAccessToken(error.config))
     }
     return Promise.reject(handleError(error))
@@ -187,9 +187,7 @@ function logOut(requestToken?: string) {
 function getRequestAccessToken(config?: AxiosRequestConfig): string | undefined {
   if (!config?.headers) return undefined
 
-  const authorization = axios.AxiosHeaders.from(config.headers as any).get(
-    'Authorization'
-  )
+  const authorization = axios.AxiosHeaders.from(config.headers as any).get('Authorization')
   if (typeof authorization !== 'string') return undefined
 
   return authorization.replace(/^Bearer\s+/i, '')
@@ -230,7 +228,6 @@ function delay(ms: number) {
 /** 请求函数 */
 async function request<T = any>(config: ExtendedAxiosRequestConfig): Promise<T> {
   try {
-    config.showErrorMessage = true
     const res = await axiosInstance.request<BaseResponse<T>>(config)
 
     // ✅ 跳过业务码校验（如文件下载），直接返回原始数据

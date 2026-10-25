@@ -635,8 +635,8 @@ declare namespace Api {
   /** 问答方案设置 */
   namespace PlanConfigManage {
     type PlanStatus = 0 | 1
-    /** 0：验证码；1：问答。 */
-    type PlanType = 0 | 1
+    /** 0：验证码；2：问答。历史类型 1 兼容读取。 */
+    type PlanType = 0 | 2
     /** 0：默认；1：非默认。 */
     type PlanDefaultStatus = 0 | 1
 
@@ -685,7 +685,7 @@ declare namespace Api {
       content?: string
       /** 0：开启；1：关闭。 */
       status: PlanStatus | number
-      /** 0：验证码；1：问答。 */
+      /** 0：验证码；2：问答。历史数据可能包含类型 1。 */
       type: PlanType | number
       /** 0：默认；1：非默认。 */
       defaultStatus: PlanDefaultStatus | number

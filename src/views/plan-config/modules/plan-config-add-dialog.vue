@@ -268,7 +268,7 @@
     questionList: [
       {
         validator: (_rule, value, callback) => {
-          if (formData.type === 1 && (!Array.isArray(value) || value.length === 0)) {
+          if (formData.type === 2 && (!Array.isArray(value) || value.length === 0)) {
             callback(new Error('请至少添加一条问答'))
             return
           }
@@ -297,12 +297,17 @@
       const questionList = JSON.parse(content)
       if (!Array.isArray(questionList)) return []
 
-      return questionList.map((item) => ({
-        questionTitle: typeof item?.questionTitle === 'string' ? item.questionTitle : '',
-        options: typeof item?.options === 'string' ? item.options : '',
-        answer: typeof item?.answer === 'string' ? item.answer : '',
-        failPrompt: typeof item?.failPrompt === 'string' ? item.failPrompt : ''
-      }))
+      return questionList.map((item) => {
+        const planFormat =
+          item && ('questionTitle' in item || 'options' in item || 'failPrompt' in item)
+        const text = (value: unknown) => (typeof value === 'string' ? value : '')
+        return {
+          questionTitle: text(planFormat ? item?.questionTitle : item?.title),
+          options: text(planFormat ? item?.options : item?.answer),
+          answer: text(planFormat ? item?.answer : item?.value),
+          failPrompt: text(planFormat ? item?.failPrompt : item?.prompt)
+        }
+      })
     } catch {
       return []
     }
@@ -319,11 +324,12 @@
     const planData = props.planData
     Object.assign(formData, createEmptyForm(), {
       title: isEdit.value ? planData?.title || '' : '',
-      img: planData?.img,
+      img: isEdit.value ? planData?.img || '' : '',
       content: isEdit.value ? planData?.content || '' : '',
       status:
         isEdit.value && (planData?.status === 0 || planData?.status === 1) ? planData.status : 0,
-      type: planData?.type,
+      // 旧问答类型 1 在编辑器中按现行类型 2 展示，保存前不改写数据库。
+      type: isEdit.value ? (planData?.type === 1 ? 2 : (planData?.type ?? 0)) : 0,
       questionList: isEdit.value ? parseQuestionList(planData?.content) : []
     })
 
@@ -334,7 +340,7 @@
 
     submitting.value = false
     uploading.value = false
-    backgroundPreviewUrl.value = uploadUrl.value + formData.img
+    backgroundPreviewUrl.value = buildBackgroundUrl(formData.img)
     nextTick(() => formRef.value?.clearValidate())
   }
 
@@ -389,7 +395,7 @@
       if (!result?.filePath) throw new Error('上传接口未返回图片地址')
 
       formData.img = result.filePath
-      backgroundPreviewUrl.value = uploadUrl.value + formData.img
+      backgroundPreviewUrl.value = buildBackgroundUrl(formData.img)
       formRef.value?.clearValidate('img')
       options.onSuccess(result)
       ElMessage.success('验证码背景上传成功')
@@ -402,7 +408,7 @@
   }
 
   const normalizeQuestionList = (): any =>
-    formData.questionList.map((item:any) => ({
+    formData.questionList.map((item: any) => ({
       questionTitle: item.questionTitle.trim(),
       options: item.options.trim(),
       answer: item.answer.trim(),

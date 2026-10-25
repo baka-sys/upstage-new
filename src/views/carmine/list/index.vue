@@ -44,6 +44,7 @@ import UserFreeze from './modules/customer-freeze.vue'
 import { ElButton, ElTag } from 'element-plus'
 import { DialogType } from '@/types'
 import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
+import CarmineCopy from '../components/carmine-copy.vue'
 
 defineOptions({ name: 'User' })
 
@@ -143,14 +144,7 @@ const {
         prop: 'carmine',
         label: '卡密',
         width: 280,
-        formatter: (row) => row.carmine
-          ? h(ElButton, {
-            link: true,
-            type: 'primary',
-            title: '点击复制卡密',
-            onClick: () => handleCopyCarmine(row.carmine)
-          }, () => row.carmine)
-          : '--'
+        formatter: (row) => h(CarmineCopy, { value: row.carmine })
       },
       {
         prop: 'accountName',
@@ -212,6 +206,7 @@ const {
 })
 
 /**
+<<<<<<< HEAD
  * 复制当前卡密
  */
 const handleCopyCarmine = async (carmine?: string) => {
@@ -225,6 +220,8 @@ const handleCopyCarmine = async (carmine?: string) => {
 }
 
 /**
+=======
+>>>>>>> 29ba6039cdf104cf020e668bc427d32066b68ce3
  * 搜索处理
  * @param params 参数
  */

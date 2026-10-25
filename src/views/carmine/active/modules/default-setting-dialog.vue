@@ -51,7 +51,11 @@
             <ElTableColumn type="index" label="序号" width="70" align="center" />
             <ElTableColumn label="卡密" min-width="280">
               <template #default="{ row }">
-                <ElInput v-model="row.carmine" placeholder="请输入卡密" clearable />
+                <ElInput v-model="row.carmine" placeholder="请输入卡密" clearable>
+                  <template v-if="row.carmine" #suffix>
+                    <CarmineCopy :value="row.carmine" label="复制" />
+                  </template>
+                </ElInput>
               </template>
             </ElTableColumn>
             <ElTableColumn prop="number" label="绑定数量" width="190" />
@@ -69,6 +73,7 @@
       </ElFormItem>
       <ElFormItem label="排除卡密" prop="excludeCard">
         <ElInput v-model="form.excludeCard" type="textarea" :rows="4" placeholder="请输入排除卡密，多个卡密可用逗号或换行分隔" />
+        <CarmineCopy v-if="form.excludeCard" :value="form.excludeCard" label="复制卡密" />
       </ElFormItem>
     </ElForm>
 
@@ -85,6 +90,7 @@
 import { Plus } from '@element-plus/icons-vue'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { fetchAccountList, updateEntryRatioSetting } from '@/api/carmine'
+import CarmineCopy from '../../components/carmine-copy.vue'
 
 type NumberFieldKey =
   | 'mainNumberTwo'

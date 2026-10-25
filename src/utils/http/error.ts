@@ -24,14 +24,15 @@
 import { AxiosError } from 'axios'
 import { ApiStatus } from './status'
 import { $t } from '@/locales'
- import { ElMessage, ElLoading } from 'element-plus';
+import { ElMessage } from 'element-plus'
 
 // 错误响应接口
 export interface ErrorResponse {
   /** 错误状态码 */
   code: number
   /** 错误消息 */
-  msg: string
+  msg?: string
+  message?: string
   /** 错误附加数据 */
   data?: unknown
 }
@@ -127,21 +128,25 @@ export function handleError(error: AxiosError<ErrorResponse>): never {
   }
 
   const statusCode = error.response?.status
-  const errorMessage = error.response?.data?.msg || error.message
+  const errorMessage = error.response?.data?.message || error.response?.data?.msg
   const requestConfig = error.config
 
   // 处理网络错误
   if (!error.response) {
-    throw new HttpError($t('httpMsg.networkError'), ApiStatus.error, {
-      url: requestConfig?.url,
-      method: requestConfig?.method?.toUpperCase()
-    })
+    const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT'
+    throw new HttpError(
+      $t(isTimeout ? 'httpMsg.requestTimeout' : 'httpMsg.networkError'),
+      ApiStatus.error,
+      {
+        url: requestConfig?.url,
+        method: requestConfig?.method?.toUpperCase()
+      }
+    )
   }
 
   // 处理 HTTP 状态码错误
-  const message = statusCode
-    ? getErrorMessage(statusCode)
-    : errorMessage || $t('httpMsg.requestFailed')
+  const message =
+    errorMessage || (statusCode ? getErrorMessage(statusCode) : $t('httpMsg.requestFailed'))
   throw new HttpError(message, statusCode || ApiStatus.error, {
     data: error.response.data,
     url: requestConfig?.url,
@@ -156,7 +161,7 @@ export function handleError(error: AxiosError<ErrorResponse>): never {
  */
 export function showError(error: any, showMessage: boolean = true): void {
   if (showMessage) {
-    ElMessage.error(error.data.message)
+    ElMessage.error(error.message || $t('httpMsg.requestFailed'))
   }
   // 记录错误日志
   console.error('[HTTP Error]', error.toLogData())

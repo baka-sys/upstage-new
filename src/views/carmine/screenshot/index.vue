@@ -27,6 +27,7 @@
   import { activePage } from '@/api/carmine'
   import { useTable } from '@/hooks/core/useTable'
   import ScreenshotSearch from './modules/screenshot-search.vue'
+  import CarmineCopy from '../components/carmine-copy.vue'
 
   defineOptions({ name: 'CarmineScreenshot' })
 
@@ -71,7 +72,7 @@
           label: '卡密',
           minWidth: 200,
           showOverflowTooltip: true,
-          formatter: (row) => formatValue(row.carmine)
+          formatter: (row) => h(CarmineCopy, { value: row.carmine })
         },
         {
           prop: 'name',

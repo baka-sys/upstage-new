@@ -45,6 +45,16 @@
   }
 }
 
+/* 短屏下让表单参与页面高度计算，避免居中后顶部超出可滚动区域。 */
+@media (height <= 650px) {
+  .auth-right-wrap {
+    position: relative;
+    height: auto;
+    min-height: 100%;
+    padding-top: 70px;
+  }
+}
+
 /* 滑入动画 */
 @keyframes slideInRight {
   from {

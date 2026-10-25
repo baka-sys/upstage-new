@@ -6,6 +6,11 @@
     align-center
     destroy-on-close
   >
+    <template #header="{ titleId, titleClass }">
+      <span :id="titleId" :class="titleClass">
+        打招呼预览 - <CarmineCopy :value="cardData?.carmine" />
+      </span>
+    </template>
     <ElScrollbar max-height="60vh">
       <ElEmpty v-if="messages.length === 0" description="暂无打招呼文字" :image-size="100" />
       <div v-else class="say-hello-list">
@@ -21,6 +26,8 @@
 </template>
 
 <script setup lang="ts">
+  import CarmineCopy from '../../components/carmine-copy.vue'
+
   interface Props {
     visible: boolean
     cardData?: Api.CarmineMange.ActivePageListItem

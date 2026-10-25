@@ -104,20 +104,29 @@ export function getPlanBackgroundFallbackUrl(imageUrl: string) {
   }
 }
 
-/** 上传背景；浏览器确认主图片可访问后使用主图，否则使用本地备用图。 */
-export async function uploadPlanConfigBackground(uploadUrl: any, file: File) {
+/** 背景图片与聊天端使用同一图片服务，保留接口返回的相对或完整地址。 */
+export async function uploadPlanConfigBackground(uploadUrl: string, file: File) {
+  const imageApi = import.meta.env.VITE_IMAGE_API_URL?.replace(/\/+$/, '')
+  const imageDomain = uploadUrl.trim().replace(/\/+$/, '')
+  if (!imageApi && !imageDomain) throw new Error('图片服务器配置缺失')
   const data = new FormData()
   data.append('file', file)
   const response = await request.post<{
     code: number
     data: { filePath: string; localFilePath?: string; fileName?: string }
-  }>({ url: uploadUrl + '/api/other/uploadImg', data, showErrorMessage: false })
+  }>({
+    url: imageApi ? imageApi + '/other/uploadImg' : imageDomain + '/api/other/uploadImg',
+    data,
+    skipAuth: true,
+    withCredentials: false,
+    showErrorMessage: false,
+    timeout: 60000
+  })
   const filePath = response.data?.filePath?.trim()
   if (!filePath) throw new Error('上传接口未返回图片地址')
-  const imageUrl = response.data.filePath
   return {
     ...response.data,
-    filePath: imageUrl
+    filePath
   }
 }
 
