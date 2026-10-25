@@ -4,6 +4,8 @@
       ref="iframeRef"
       :src="iframeUrl"
       frameborder="0"
+      sandbox="allow-scripts allow-forms allow-popups"
+      referrerpolicy="no-referrer"
       class="w-full h-full min-h-[calc(100vh-120px)] border-none"
       @load="handleIframeLoad"
     ></iframe>
@@ -12,6 +14,7 @@
 
 <script setup lang="ts">
   import { IframeRouteManager } from '@/router/core'
+  import { safeHttpUrl } from '@/utils/navigation/safe-url'
 
   defineOptions({ name: 'IframeView' })
 
@@ -28,7 +31,7 @@
     const iframeRoute = IframeRouteManager.getInstance().findByPath(route.path)
 
     if (iframeRoute?.meta) {
-      iframeUrl.value = iframeRoute.meta.link || ''
+      iframeUrl.value = safeHttpUrl(iframeRoute.meta.link)
     }
   })
 

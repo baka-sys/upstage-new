@@ -111,7 +111,12 @@ class StorageCompatibilityManager {
   private performSystemLogout(): void {
     setTimeout(() => {
       try {
-        localStorage.clear()
+        for (const key of Object.keys(localStorage)) {
+          if (key.startsWith('upstage:')) localStorage.removeItem(key)
+        }
+        for (const key of Object.keys(sessionStorage)) {
+          if (key.startsWith('upstage:')) sessionStorage.removeItem(key)
+        }
         useUserStore().logOut()
         router.push({ name: 'Login' })
         console.info('[Storage] 已执行系统登出')

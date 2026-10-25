@@ -144,6 +144,19 @@
             )
         },
         {
+          prop: 'direct',
+          label: '域名类型',
+          width: 120,
+          formatter: (row) => {
+            // TODO: 后端确认 status = 0 的业务文案是否为“开启”。
+            if (row.direct === 0) return h(ElTag, { type: 'success' }, () => '口子类型')
+            if (row.direct === 1) return h(ElTag, { type: 'success' }, () => '直连域名')
+            if (row.direct === 2) return h(ElTag, { type: 'success' }, () => '备案域名')
+            if (row.direct === 3) return h(ElTag, { type: 'success' }, () => '嵌套域名')
+            return '--'
+          }
+        },
+        {
           prop: 'domainName',
           label: '域名',
           minWidth: 360,
@@ -374,6 +387,7 @@
     const reqData = { id: row.id }
     const res: any = await deleteCodeBatch(reqData)
     if (res.code == 200) {
+      refreshUpdate()
       ElMessage.success('删除成功')
     } else {
       ElMessage.error('删除失败')

@@ -78,12 +78,12 @@
         </div>
 
         <ElRow :gutter="16">
-          <ElCol :span="12">
+          <ElCol :xs="24" :sm="12">
             <ElFormItem label="企业名称" prop="accountName">
               <ElInput v-model="formData.accountName" placeholder="请输入企业名称" clearable />
             </ElFormItem>
           </ElCol>
-          <ElCol :span="12">
+          <ElCol :xs="24" :sm="12">
             <ElFormItem label="企业账号" prop="account">
               <ElInput
                 v-model="formData.account"
@@ -93,7 +93,7 @@
               />
             </ElFormItem>
           </ElCol>
-          <ElCol :span="12">
+          <ElCol :xs="24" :sm="12">
             <ElFormItem label="手机号" prop="phoneNumber">
               <ElInput
                 v-model="formData.phoneNumber"
@@ -104,7 +104,7 @@
               />
             </ElFormItem>
           </ElCol>
-          <ElCol :span="12">
+          <ElCol :xs="24" :sm="12">
             <ElFormItem label="信用额度" prop="creditPoints">
               <ElInputNumber
                 v-model="formData.creditPoints"
@@ -119,7 +119,7 @@
               </div>
             </ElFormItem>
           </ElCol>
-          <ElCol v-if="isEdit" :span="12">
+          <ElCol v-if="isEdit" :xs="24" :sm="12">
             <ElFormItem label="账号状态">
               <ElTag :type="accountData?.status === 0 ? 'success' : 'info'">
                 {{ accountData?.status === 0 ? '启用' : '禁用' }}
@@ -136,7 +136,7 @@
         </div>
 
         <ElRow :gutter="16">
-          <ElCol :span="12">
+          <ElCol :xs="24" :sm="12">
             <ElFormItem label="密码" prop="password">
               <ElInput
                 v-model="formData.password"
@@ -146,7 +146,7 @@
               />
             </ElFormItem>
           </ElCol>
-          <ElCol :span="12">
+          <ElCol :xs="24" :sm="12">
             <ElFormItem label="确认密码" prop="confirmPassword">
               <ElInput
                 v-model="formData.confirmPassword"

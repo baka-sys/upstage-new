@@ -443,7 +443,7 @@ export const useSettingStore = defineStore(
   },
   {
     persist: {
-      key: 'setting',
+      key: 'upstage:setting',
       storage: sessionStorage
     }
   }

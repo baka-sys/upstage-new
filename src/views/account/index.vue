@@ -149,7 +149,7 @@
         {
           prop: 'operation',
           label: '操作',
-          width: 400,
+          width: 200,
           fixed: 'right',
           formatter: (row) => {
             const statusAction = row.status === 0 ? '禁用' : row.status === 1 ? '启用' : '--'

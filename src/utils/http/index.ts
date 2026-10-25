@@ -74,6 +74,13 @@ const axiosInstance = axios.create({
 /** 请求拦截器 */
 axiosInstance.interceptors.request.use(
   (request: InternalAxiosRequestConfig) => {
+    const api = new URL(VITE_API_URL || '/', window.location.origin)
+    const target = new URL(axiosInstance.getUri(request), window.location.origin)
+    const apiPath = api.pathname.replace(/\/$/, '')
+    if (target.origin !== api.origin ||
+        (apiPath && target.pathname !== apiPath && !target.pathname.startsWith(apiPath + '/'))) {
+      throw new Error('Refusing to send credentials outside the configured API')
+    }
     const { accessToken } = useUserStore()
     if (accessToken) {
       request.headers.set('Authorization', 'Bearer ' + accessToken)

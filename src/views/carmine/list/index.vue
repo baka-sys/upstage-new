@@ -35,6 +35,7 @@
 
 <script setup lang="ts">
 import { useTable } from '@/hooks/core/useTable'
+import { copyTextOrPrompt } from '@/utils/clipboard-dialog'
 import { fetchCarmineList, handleUpdateStatusApi } from '@/api/carmine'
 import UserSearch from './modules/customer-search.vue'
 import UserDialog from './modules/customer-dialog.vue'
@@ -217,8 +218,7 @@ const handleCopyCarmine = async (carmine?: string) => {
   if (!carmine) return
 
   try {
-    await navigator.clipboard.writeText(carmine)
-    ElMessage.success('复制成功')
+    if (await copyTextOrPrompt(carmine, '复制卡密')) ElMessage.success('复制成功')
   } catch {
     ElMessage.error('复制失败，请检查浏览器剪贴板权限')
   }

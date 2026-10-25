@@ -90,7 +90,7 @@ export const useTableStore = defineStore(
   },
   {
     persist: {
-      key: 'table',
+      key: 'upstage:table',
       storage: sessionStorage
     }
   }

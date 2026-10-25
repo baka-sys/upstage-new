@@ -175,4 +175,30 @@ onMounted(() => {
 .number-input {
   width: 100%;
 }
+
+@media screen and (max-width: 640px) {
+  :deep(.el-form-item) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  :deep(.el-form-item__label) {
+    width: 100% !important;
+    height: auto;
+    padding: 0 0 6px;
+    justify-content: flex-start;
+    white-space: normal;
+  }
+
+  :deep(.el-form-item__content) {
+    width: 100%;
+    min-width: 0;
+    margin-left: 0 !important;
+  }
+
+  .number-input {
+    width: 100%;
+    max-width: 100%;
+  }
+}
 </style>

@@ -10,12 +10,12 @@
         <ElInput :model-value="form.subCarmine" disabled placeholder="暂无副卡1卡密" />
       </ElFormItem>
       <ElRow :gutter="16">
-        <ElCol :span="12">
+        <ElCol :xs="24" :sm="12">
           <ElFormItem label="主卡比例人数" prop="mainRadioNumber">
             <ElInputNumber v-model="form.mainRadioNumber" :min="0" :max="2147483647" :precision="0" disabled />
           </ElFormItem>
         </ElCol>
-        <ElCol :span="12">
+        <ElCol :xs="24" :sm="12">
           <ElFormItem label="副卡1比例人数" prop="subRadioNumber">
             <ElInputNumber v-model="form.subRadioNumber" :min="0" :max="2147483647" :precision="0" disabled />
           </ElFormItem>
@@ -35,12 +35,12 @@
         <ElInput v-model.trim="form.subCarmineTwo" placeholder="请输入副卡2卡密" />
       </ElFormItem>
       <ElRow :gutter="16">
-        <ElCol :span="12">
+        <ElCol :xs="24" :sm="12">
           <ElFormItem label="主卡比例人数" prop="mainRadioNumberTwo">
             <ElInputNumber v-model="form.mainRadioNumberTwo" :min="0" :max="2147483647" :precision="0" />
           </ElFormItem>
         </ElCol>
-        <ElCol :span="12">
+        <ElCol :xs="24" :sm="12">
           <ElFormItem label="副卡2比例人数" prop="subRadioNumberTwo">
             <ElInputNumber v-model="form.subRadioNumberTwo" :min="0" :max="2147483647" :precision="0" />
           </ElFormItem>
@@ -201,4 +201,23 @@ const handleSubmit = async () => {
 :deep(.el-input-number) {
   width: 100%;
 }
+
+  @media screen and (max-width: 640px) {
+    :deep(.el-form-item) {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    :deep(.el-form-item__label) {
+      width: 100% !important;
+      height: auto;
+      padding: 0 0 6px;
+      justify-content: flex-start;
+      white-space: normal;
+    }
+    :deep(.el-form-item__content) {
+      width: 100%;
+      min-width: 0;
+      margin-left: 0 !important;
+    }
+  }
 </style>

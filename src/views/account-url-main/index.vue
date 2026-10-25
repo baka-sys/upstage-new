@@ -51,6 +51,7 @@
   import { ElButton, ElLink, ElTag } from 'element-plus'
   import { getAccountUrlMainCopyList, getAccountUrlMainPage } from '@/api/account-url-main'
   import { useTable } from '@/hooks/core/useTable'
+  import { requestTextCopy } from '@/utils/clipboard-dialog'
   import {
     RELATION_TYPE_MAP,
     RELATION_TYPE_TAG_MAP,
@@ -170,10 +171,6 @@
     }
   })
 
-  const writeClipboard = async (text: string) => {
-    await navigator.clipboard.writeText(text)
-  }
-
   const handleSearch = (params: SearchForm) => {
     searchForm.value = params
     replaceSearchParams(params)
@@ -213,8 +210,9 @@
         return
       }
 
-      await writeClipboard(addresses.join('\r\n\r\n'))
-      ElMessage.success(`已复制 ${addresses.length} 个链接`)
+      if (await requestTextCopy(addresses.join('\r\n\r\n'), '复制全部链接')) {
+        ElMessage.success(`已复制 ${addresses.length} 个链接`)
+      }
     } catch {
       ElMessage.error('复制失败，请稍后重试')
     } finally {

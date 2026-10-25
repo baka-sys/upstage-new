@@ -1,18 +1,39 @@
 @reference '@styles/core/tailwind.css';
 
-/* 授权页右侧区域 */
+/* 保持表单在文档流中，软键盘和短屏下可以滚动到提交按钮。 */
+.auth-login-page,
+.auth-login-main {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* 左侧登录插图使用 height: 100%，父级需要明确的视口高度。 */
+.auth-login-page {
+  height: 100vh;
+  height: 100dvh;
+}
+
+.auth-login-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 96px 24px 32px;
+}
+
 .auth-right-wrap {
-  @apply absolute inset-0 w-[440px] h-[650px] py-[5px] m-auto overflow-hidden
-    max-sm:px-7 max-sm:w-full
+  @apply relative w-[440px]
     animate-[slideInRight_0.6s_cubic-bezier(0.25,0.46,0.45,0.94)_forwards]
     max-md:animate-none;
+  max-width: 100%;
+  margin: auto;
 
   .form {
-    @apply h-full py-[40px];
+    padding: 24px 0;
   }
 
   .title {
-    @apply text-g-900 text-4xl font-semibold max-md:text-3xl max-sm:pt-10;
+    @apply text-g-900 text-4xl font-semibold max-md:text-3xl;
   }
 
   .sub-title {

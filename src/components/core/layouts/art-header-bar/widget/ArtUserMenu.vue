@@ -6,17 +6,19 @@
     :width="240"
     :hide-after="0"
     :offset="10"
-    trigger="hover"
+    trigger="click"
     :show-arrow="false"
     popper-class="user-menu-popover"
     popper-style="padding: 5px 16px;"
   >
     <template #reference>
-      <img
-        class="size-8.5 mr-5 c-p rounded-full max-sm:w-6.5 max-sm:h-6.5 max-sm:mr-[16px]"
-        src="@imgs/user/avatar.webp"
-        alt="avatar"
-      />
+      <button type="button" class="user-menu-trigger mr-5 max-sm:mr-[16px]" aria-label="用户菜单">
+        <img
+          class="size-8.5 rounded-full max-sm:w-6.5 max-sm:h-6.5"
+          src="@imgs/user/avatar.webp"
+          alt=""
+        />
+      </button>
     </template>
     <template #default>
       <div class="pt-3">
@@ -133,6 +135,24 @@
 
 <style scoped>
   @reference '@styles/core/tailwind.css';
+
+  .user-menu-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .user-menu-trigger:focus-visible {
+    outline: 2px solid var(--theme-color);
+    outline-offset: 2px;
+  }
 
   @layer components {
     .btn-item {

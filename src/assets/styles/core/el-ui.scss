@@ -208,6 +208,12 @@ html.dark .el-card {
   outline: none !important;
 }
 
+// 固定宽度弹窗也必须容纳于平板和窄窗口。
+.el-message-box,
+.el-dialog:not(.is-fullscreen) {
+  max-width: calc(100vw - 24px);
+}
+
 // 处理移动端组件兼容性
 @media screen and (max-width: 640px) {
   .el-message-box,
@@ -347,6 +353,23 @@ html.dark .el-card {
 .el-table__column-filter-trigger i {
   color: var(--theme-color) !important;
   margin: -3px 0 0 2px;
+}
+
+// 所有表格数据单元格字体比默认值缩小 2px。
+.el-table__body .el-table__cell .cell {
+  font-size: 12px;
+}
+
+// 所有表格操作按钮统一缩小字体和间隔。
+.el-table__body .el-table__cell .cell .el-button {
+  margin-left: 0 !important;
+  padding-right: 2px;
+  padding-left: 2px;
+  font-size: 12px;
+}
+
+.el-table__body .el-table__cell .cell .el-button + .el-button {
+  margin-left: 2px !important;
 }
 
 // 去除 el-dropdown 鼠标放上去出现的边框

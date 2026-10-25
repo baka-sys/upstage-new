@@ -9,6 +9,7 @@
     @mouseleave="dragFinish"
     @touchmove="dragMoving"
     @touchend="dragFinish"
+    @touchcancel="dragCancel"
   >
     <!-- 进度条 -->
     <div
@@ -122,35 +123,12 @@
   const handler = ref()
   const progressBar = ref()
 
-  // 触摸事件变量 - 用于禁止页面滑动
-  let startX: number, startY: number, moveX: number, moveY: number
-
-  /**
-   * 触摸开始事件处理
-   * @param e 触摸事件对象
-   */
-  const onTouchStart = (e: any) => {
-    startX = e.targetTouches[0].pageX
-    startY = e.targetTouches[0].pageY
+  // 0 是合法坐标，不能使用 || 回退到不存在的 touches。
+  const getEventPageX = (e: any): number | undefined => {
+    if (typeof e.pageX === 'number' && Number.isFinite(e.pageX)) return e.pageX
+    const touch = e.touches?.[0] ?? e.changedTouches?.[0]
+    return typeof touch?.pageX === 'number' && Number.isFinite(touch.pageX) ? touch.pageX : undefined
   }
-
-  /**
-   * 触摸移动事件处理 - 判断是否为横向滑动，如果是则阻止默认行为
-   * @param e 触摸事件对象
-   */
-  const onTouchMove = (e: any) => {
-    moveX = e.targetTouches[0].pageX
-    moveY = e.targetTouches[0].pageY
-
-    // 如果横向移动距离大于纵向移动距离，阻止默认行为（防止页面滑动）
-    if (Math.abs(moveX - startX) > Math.abs(moveY - startY)) {
-      e.preventDefault()
-    }
-  }
-
-  // 全局事件监听器添加
-  document.addEventListener('touchstart', onTouchStart)
-  document.addEventListener('touchmove', onTouchMove, { passive: false })
 
   // 获取数值形式的宽度
   const getNumericWidth = (): number => {
@@ -181,16 +159,8 @@
       dragVerify.value?.style.setProperty('--pwidth', -Math.floor(numericWidth / 2) + 'px')
     })
 
-    // 重复添加事件监听器（确保事件绑定）
-    document.addEventListener('touchstart', onTouchStart)
-    document.addEventListener('touchmove', onTouchMove, { passive: false })
   })
 
-  // 组件卸载前清理事件监听器
-  onBeforeUnmount(() => {
-    document.removeEventListener('touchstart', onTouchStart)
-    document.removeEventListener('touchmove', onTouchMove)
-  })
 
   // 滑块样式计算
   const handlerStyle = {
@@ -233,12 +203,13 @@
    * @param e 鼠标或触摸事件对象
    */
   const dragStart = (e: any) => {
+    const pageX = getEventPageX(e)
+    if (pageX === undefined) return
     if (!props.value) {
       state.isMoving = true
       handler.value.style.transition = 'none'
       // 计算拖拽起始位置
-      state.x =
-        (e.pageX || e.touches[0].pageX) - parseInt(handler.value.style.left.replace('px', ''), 10)
+      state.x = pageX - (parseFloat(handler.value.style.left) || 0)
     }
     emit('handlerMove')
   }
@@ -249,9 +220,13 @@
    */
   const dragMoving = (e: any) => {
     if (state.isMoving && !props.value) {
+      const pageX = getEventPageX(e)
+      if (pageX === undefined) return
+      // 仅拖动滑块时阻止触摸滚动，不影响页面其他区域。
+      if (e.touches && e.cancelable) e.preventDefault()
       const numericWidth = getNumericWidth()
       // 计算当前位置
-      let _x = (e.pageX || e.touches[0].pageX) - state.x
+      let _x = pageX - state.x
 
       // 在有效范围内移动
       if (_x > 0 && _x <= numericWidth - props.height) {
@@ -272,9 +247,14 @@
    */
   const dragFinish = (e: any) => {
     if (state.isMoving && !props.value) {
+      const pageX = getEventPageX(e)
+      if (pageX === undefined) {
+        dragCancel()
+        return
+      }
       const numericWidth = getNumericWidth()
       // 计算最终位置
-      let _x = (e.pageX || e.changedTouches[0].pageX) - state.x
+      let _x = pageX - state.x
 
       if (_x < numericWidth - props.height) {
         // 未拖拽到末端，重置位置
@@ -291,6 +271,18 @@
         passVerify()
       }
       state.isMoving = false
+    }
+  }
+
+  // 系统打断触摸时复位未完成的拖动，不触发验证通过。
+  const dragCancel = () => {
+    state.isMoving = false
+    state.x = 0
+    state.isOk = false
+    if (!props.value) {
+      handler.value.style.left = '0'
+      handler.value.style.transition = 'all 0.2s'
+      progressBar.value.style.width = '0'
     }
   }
 
@@ -349,6 +341,7 @@
       align-items: center;
       justify-content: center;
       cursor: move;
+      touch-action: none;
 
       i {
         padding-left: 0;

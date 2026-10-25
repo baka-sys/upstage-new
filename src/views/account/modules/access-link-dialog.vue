@@ -52,6 +52,7 @@
 
 <script setup lang="ts">
   import { getAccountAccessUrls } from '@/api/account'
+  import { visitUrlWithNonce as getVisitUrl } from '@/utils/navigation/safe-url'
   import {
     RELATION_TYPE_MAP,
     RELATION_TYPE_TAG_MAP,
@@ -77,8 +78,7 @@
   const loading = ref(false)
 
   // 与后端 AccountUrlMainDTO 的快捷、粉商地址拼接规则保持一致。
-  const getVisitUrl = (mainVisitUrl?: string, nonceStr?: string) =>
-    mainVisitUrl && nonceStr ? `${mainVisitUrl}?nonce=${nonceStr}` : ''
+
 
   watch(
     () => [props.visible, props.accountData?.id] as const,

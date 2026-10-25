@@ -466,6 +466,7 @@
 
   .background-preview {
     width: 240px;
+    max-width: 100%;
     height: 140px;
     border: 1px solid var(--el-border-color);
     border-radius: 6px;
@@ -486,5 +487,24 @@
   .drag-handle {
     color: var(--el-text-color-secondary);
     cursor: move;
+  }
+
+  @media screen and (max-width: 640px) {
+    :deep(.el-form-item) {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    :deep(.el-form-item__label) {
+      width: 100% !important;
+      height: auto;
+      padding: 0 0 6px;
+      justify-content: flex-start;
+      white-space: normal;
+    }
+    :deep(.el-form-item__content) {
+      width: 100%;
+      min-width: 0;
+      margin-left: 0 !important;
+    }
   }
 </style>

@@ -1,4 +1,5 @@
 import request from '@/utils/http'
+import { formRequest } from '@/utils/http/form-request'
 
 /**
  * 登录
@@ -8,9 +9,7 @@ import request from '@/utils/http'
 export function fetchLogin(params: any) {
   return request.post<any>({
     url: '/admin/login',
-    params,
-    // 后端使用 @RequestParam；显式保留空请求体，避免请求封装把 params 转成 JSON Body。
-    data: {},
+    ...formRequest(params)
     //showSuccessMessage: true // 显示成功消息
     //showErrorMessage: false // 不显示错误消息
   })

@@ -36,6 +36,7 @@
           <ElOption label="口子域名" :value="0" />
           <ElOption label="直连域名" :value="1" />
           <ElOption label="备案域名" :value="2" />
+          <ElOption label="嵌套域名" :value="3" />
         </ElSelect>
       </ElFormItem>
       <ElFormItem label="是否支持扫码" prop="isScan">

@@ -561,7 +561,7 @@ export const useWorktabStore = defineStore(
   },
   {
     persist: {
-      key: 'worktab',
+      key: 'upstage:worktab',
       storage: sessionStorage
     }
   }

@@ -17,10 +17,12 @@
 import { AppRouteRecord } from '@/types/router'
 import { router } from '@/router'
 import { isNavigableMenuItem } from './route'
+import { safeHttpUrl } from './safe-url'
 
 // 打开外部链接
 export const openExternalLink = (link: string) => {
-  window.open(link, '_blank')
+  const url = safeHttpUrl(link)
+  if (url) window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 /**

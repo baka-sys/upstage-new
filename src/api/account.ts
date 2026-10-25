@@ -1,4 +1,5 @@
 import request from '@/utils/http'
+import { formRequest } from '@/utils/http/form-request'
 
 interface AccountPageResponse {
   success: boolean
@@ -66,8 +67,7 @@ export function updateAccountInfo(data: any) {
 export function updateAccountPassword(params: Api.AccountManage.UpdateAccountPasswordParams) {
   return request.post<void>({
     url: '/account/updatePassword',
-    params,
-    data: {}
+    ...formRequest(params)
   })
 }
 

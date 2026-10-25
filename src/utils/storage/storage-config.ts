@@ -31,19 +31,19 @@ export class StorageConfig {
   static readonly CURRENT_VERSION = __APP_VERSION__
 
   /** 存储键前缀 */
-  static readonly STORAGE_PREFIX = 'sys-v'
+  static readonly STORAGE_PREFIX = 'upstage:sys-v'
 
   /** 版本键名 */
-  static readonly VERSION_KEY = 'sys-version'
+  static readonly VERSION_KEY = 'upstage:sys-version'
 
   /** 主题键名（index.html中使用了，如果修改，需要同步修改） */
-  static readonly THEME_KEY = 'sys-theme'
+  static readonly THEME_KEY = 'upstage:sys-theme'
 
   /** 上次登录用户ID键名（用于判断是否为同一用户登录） */
-  static readonly LAST_USER_ID_KEY = 'sys-last-user-id'
+  static readonly LAST_USER_ID_KEY = 'upstage:sys-last-user-id'
 
   /** 响应式布局切换时暂存桌面端菜单类型 */
-  static readonly RESPONSIVE_MENU_TYPE_KEY = 'sys-responsive-menu-type'
+  static readonly RESPONSIVE_MENU_TYPE_KEY = 'upstage:sys-responsive-menu-type'
 
   /** 跳过升级检查的版本 */
   static readonly SKIP_UPGRADE_VERSION = '1.0.0'

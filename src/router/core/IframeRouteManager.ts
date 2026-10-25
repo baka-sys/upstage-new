@@ -57,7 +57,7 @@ export class IframeRouteManager {
    */
   save(): void {
     if (this.iframeRoutes.length > 0) {
-      sessionStorage.setItem('iframeRoutes', JSON.stringify(this.iframeRoutes))
+      sessionStorage.setItem('upstage:iframeRoutes', JSON.stringify(this.iframeRoutes))
     }
   }
 
@@ -66,7 +66,7 @@ export class IframeRouteManager {
    */
   load(): void {
     try {
-      const data = sessionStorage.getItem('iframeRoutes')
+      const data = sessionStorage.getItem('upstage:iframeRoutes')
       if (data) {
         this.iframeRoutes = JSON.parse(data)
       }
