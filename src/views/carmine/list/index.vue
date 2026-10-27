@@ -206,7 +206,6 @@ const {
 })
 
 /**
-<<<<<<< HEAD
  * 复制当前卡密
  */
 const handleCopyCarmine = async (carmine?: string) => {
@@ -220,8 +219,6 @@ const handleCopyCarmine = async (carmine?: string) => {
 }
 
 /**
-=======
->>>>>>> 29ba6039cdf104cf020e668bc427d32066b68ce3
  * 搜索处理
  * @param params 参数
  */
