@@ -29,6 +29,16 @@ export async function getAccountAccessUrls(params: Api.AccountManage.AccessUrlLi
   return response.data ?? []
 }
 
+/** 由总后台为所选企业重新生成访问链接 */
+export async function generateEnterpriseLinks(
+  data: Api.AccountManage.EnterpriseLinkGenerateParams
+) {
+  const response = await request.post<{
+    data: Api.AccountManage.EnterpriseLinkGenerateResult[]
+  }>({ url: '/accountUrlMain/generate', data })
+  return response.data
+}
+
 /** 获取企业账号分页列表 */
 export async function getAccountPage(
   params: Api.AccountManage.AccountPageParams

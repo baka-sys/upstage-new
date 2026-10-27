@@ -191,10 +191,29 @@ declare namespace Api {
     interface AccessUrlListItem {
       id: number | string
       accountId: number | string
-      type: 1 | 2
+      type: 1 | 2 | 3
       mainVisitUrl?: string
       nonceStr?: string
       relationType?: AccountUrlMainManage.RelationType
+      expirationTime?: string | null
+    }
+
+    interface EnterpriseLinkGenerateParams {
+      accountIds: (number | string)[]
+      duration: number
+      durationUnit: 'DAY' | 'WEEK' | 'MONTH'
+    }
+
+    interface EnterpriseLinkGenerateResult {
+      accountId: number | string
+      accountName: string
+      links: {
+        id: number
+        urlType: 1 | 2 | 3
+        relationType: AccountUrlMainManage.RelationType
+        visitUrl: string
+        accountUrl: AccessUrlListItem
+      }[]
     }
   }
 
